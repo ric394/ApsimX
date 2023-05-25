@@ -1,16 +1,17 @@
-﻿namespace Models.Core
+﻿using APSIM.Shared.Utilities;
+using Models.Functions;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text.RegularExpressions;
+using System.Xml;
+
+namespace Models.Core
 {
-    using APSIM.Shared.Utilities;
-    using Models.Functions;
-    using System;
-    using System.Collections.Generic;
-    using System.Data;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Reflection;
-    using System.Text.RegularExpressions;
-    using System.Xml;
 
     /// <summary>
     /// A class of auto-documentation methods and HTML building widgets.
@@ -21,7 +22,7 @@
 
         private static object lockObject = new object();
 
-        /// <summary>Gets the units from a declaraion.</summary>
+        /// <summary>Gets the units from a declaration.</summary>
         /// <param name="model">The model containing the declaration field.</param>
         /// <param name="fieldName">The declaration field name.</param>
         /// <returns>The units (no brackets) or any empty string.</returns>
@@ -51,7 +52,7 @@
                 return string.Empty;
         }
 
-        /// <summary>Gets the description from a declaraion.</summary>
+        /// <summary>Gets the description from a declaration.</summary>
         /// <param name="model">The model containing the declaration field.</param>
         /// <param name="fieldName">The declaration field name.</param>
         /// <returns>The description or any empty string.</returns>
@@ -90,18 +91,18 @@
                 // if (model is ICustomDocumentation)
                 //     (model as ICustomDocumentation).Document(tags, headingLevel, indent);
                 // else
-                    DocumentModelSummary(model, tags, headingLevel, indent, documentAllChildren);
+                DocumentModelSummary(model, tags, headingLevel, indent, documentAllChildren);
             }
         }
 
         /// <summary>
         /// Document the summary description of a model.
         /// </summary>
-        /// <param name="model">The model to get documentation for.</param>
-        /// <param name="tags">The tags to add to.</param>
-        /// <param name="headingLevel">The heading level to use.</param>
-        /// <param name="indent">The indentation level.</param>
-        /// <param name="documentAllChildren">Document all children?</param>
+        /// <param name = "model" > The model to get documentation for.</param>
+        /// <param name = "tags" > The tags to add to.</param>
+        /// <param name = "headingLevel" > The heading level to use.</param>
+        /// <param name = "indent" > The indentation level.</param>
+        /// <param name = "documentAllChildren" > Document all children?</param>
         public static void DocumentModelSummary(IModel model, List<ITag> tags, int headingLevel, int indent, bool documentAllChildren)
         {
             if (model == null)
