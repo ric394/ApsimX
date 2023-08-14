@@ -1,20 +1,21 @@
-﻿namespace UserInterface.Presenters
+﻿using APSIM.Shared.Graphing;
+using APSIM.Shared.Utilities;
+using Models;
+using Models.Core;
+using Models.Storage;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using UserInterface.Commands;
+using UserInterface.EventArguments;
+using UserInterface.Interfaces;
+using UserInterface.Views;
+using Series = Models.Series;
+
+namespace UserInterface.Presenters
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data;
-    using System.Drawing;
-    using EventArguments;
-    using System.Linq;
-    using APSIM.Shared.Utilities;
-    using Interfaces;
-    using Models.Core;
-    using Models;
-    using Views;
-    using Commands;
-    using Models.Storage;
-    using APSIM.Shared.Graphing;
-    using Series = Models.Series;
 
     /// <summary>
     /// A presenter class for graph series.
@@ -257,7 +258,7 @@
                     SetModelProperty("FactorToVaryLines", this.seriesView.LineType.SelectedValue.Replace("Vary by ", ""));
             }
         }
-        
+
         /// <summary>Series marker type has been changed by the user.</summary>
         /// <param name="sender">Event sender</param>
         /// <param name="e">Event arguments</param>
@@ -572,7 +573,8 @@
             if (series.Type == SeriesType.Region)
             {
                 this.seriesView.ShowX2Y2(true);
-            } else
+            }
+            else
             {
                 this.seriesView.ShowX2Y2(false);
                 //null the x2 and y2 field names so they don't cause errors if a model changes

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Drawing;
 
@@ -31,6 +30,8 @@ namespace APSIM.Shared.Graphing
         /// <param name="marker">The marker settings for the graph (size, shape, ...).</param>
         /// <param name="xName">Name of the x-axis field displayed by this series.</param>
         /// <param name="yName">Name of the y-axis field displayed by this series.</param>
+        /// <param name="MakeXAxesLogarithmic">Should x axes be made logarithmic?</param>
+        /// <param name="MakeYAxesLogarithmic">Should y axes be made logarithmic?</param>
         public LineSeries(string title,
                           Color colour,
                           bool showLegend,
@@ -39,7 +40,9 @@ namespace APSIM.Shared.Graphing
                           Line line,
                           Marker marker,
                           string xName,
-                          string yName) : base(title, colour, showLegend, x, y, xName, yName)
+                          string yName,
+                          bool MakeXAxesLogarithmic,
+                          bool MakeYAxesLogarithmic) : base(title, colour, showLegend, x, y, xName, yName, MakeXAxesLogarithmic, MakeYAxesLogarithmic)
         {
             LineConfig = line;
             MarkerConfig = marker;
@@ -57,6 +60,8 @@ namespace APSIM.Shared.Graphing
         /// <param name="marker">The marker settings for the graph (size, shape, ...).</param>
         /// <param name="xName">Name of the x-axis field displayed by this series.</param>
         /// <param name="yName">Name of the y-axis field displayed by this series.</param>
+        /// <param name="MakeXAxesLogarithmic">Should x axes be made logarithmic?</param>
+        /// <param name="MakeYAxesLogarithmic">Should y axes be made logarithmic?</param>
         public LineSeries(string title,
                           Color colour,
                           bool showLegend,
@@ -65,7 +70,9 @@ namespace APSIM.Shared.Graphing
                           Line line,
                           Marker marker,
                           string xName,
-                          string yName) : base(title, colour, showLegend, x, y, xName, yName)
+                          string yName,
+                          bool MakeXAxesLogarithmic,
+                          bool MakeYAxesLogarithmic) : base(title, colour, showLegend, x, y, xName, yName, MakeXAxesLogarithmic, MakeYAxesLogarithmic)
         {
             LineConfig = line;
             MarkerConfig = marker;

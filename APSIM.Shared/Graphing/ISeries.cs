@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Drawing;
 
@@ -33,5 +32,15 @@ namespace APSIM.Shared.Graphing
 
         /// <summary>Name of the y-axis field displayed by this series.</summary>
         string YFieldName { get; }
+
+        /// <summary>
+        /// Should the Y axes be shown in logarithmic scale?
+        /// </summary>
+        public bool MakeYAxesLogarithmic { get; set; }
+
+        /// <summary>
+        /// Should the X axes be shown in logarithmic scale?
+        /// </summary>
+        public bool MakeXAxesLogarithmic { get; set; }
     }
 }

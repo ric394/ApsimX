@@ -29,13 +29,17 @@ namespace APSIM.Shared.Graphing
         /// <param name="y">Y-axis data.</param>
         /// <param name="xName">Name of the x-axis field displayed by this series.</param>
         /// <param name="yName">Name of the y-axis field displayed by this series.</param>
+        /// <param name="MakeXAxesLogarithmic">Should x axes be made logarithmic?</param>
+        /// <param name="MakeYAxesLogarithmic">Should y axes be made logarithmic?</param>
         public BarSeries(string title,
                           Color colour,
                           bool showLegend,
                           IEnumerable<object> x,
                           IEnumerable<object> y,
                           string xName,
-                          string yName) : base(title, colour, showLegend, x, y, xName, yName)
+                          string yName,
+                          bool MakeXAxesLogarithmic,
+                          bool MakeYAxesLogarithmic) : base(title, colour, showLegend, x, y, xName, yName, MakeXAxesLogarithmic, MakeYAxesLogarithmic)
         {
         }
 
@@ -50,6 +54,8 @@ namespace APSIM.Shared.Graphing
         /// <param name="fillColour">Colour used to fill in the rectangular area.</param>
         /// <param name="xName">Name of the x-axis field displayed by this series.</param>
         /// <param name="yName">Name of the y-axis field displayed by this series.</param>
+        /// <param name="MakeXAxesLogarithmic">Should x axes be made logarithmic?</param>
+        /// <param name="MakeYAxesLogarithmic">Should y axes be made logarithmic?</param>
         public BarSeries(string title,
                           Color colour,
                           bool showLegend,
@@ -57,7 +63,9 @@ namespace APSIM.Shared.Graphing
                           IEnumerable<object> y,
                           Color fillColour,
                           string xName,
-                          string yName) : base(title, colour, showLegend, x, y, xName, yName)
+                          string yName,
+                          bool MakeXAxesLogarithmic,
+                          bool MakeYAxesLogarithmic) : base(title, colour, showLegend, x, y, xName, yName, MakeXAxesLogarithmic, MakeYAxesLogarithmic)
         {
             this.fillColour = fillColour;
         }

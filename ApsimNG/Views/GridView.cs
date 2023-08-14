@@ -1,18 +1,18 @@
-﻿namespace UserInterface.Views
+﻿using Gtk;
+using Models.Core;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using UserInterface.Classes;
+using UserInterface.EventArguments;
+using UserInterface.Extensions;
+using UserInterface.Interfaces;
+using Utility;
+
+namespace UserInterface.Views
 {
-    using Classes;
-    using EventArguments;
-    using Extensions;
-    using Gtk;
-    using Interfaces;
-    using Models.Core;
-    using System;
-    using System.Collections.Generic;
-    using System.Data;
-    using System.Drawing;
-    using System.Linq;
-    using System.Reflection;
-    using Utility;
 
     /// <summary>
     /// A grid control that implements the grid view interface.
@@ -78,7 +78,7 @@
         /// The data table that is being shown on the grid.
         /// </summary>
         private DataTable table;
-        
+
         /// <summary>
         /// Flag to keep track of whether a cursor move was initiated internally.
         /// </summary>
@@ -239,7 +239,7 @@
         protected override void Initialise(ViewBase ownerView, GLib.Object gtkControl)
         {
             owner = ownerView;
-            
+
             Builder builder = BuilderFromResource("ApsimNG.Resources.Glade.GridView.glade");
             hboxContainer = (HBox)builder.GetObject("hbox1");
             if (gtkControl != null)
@@ -333,7 +333,7 @@
         /// Invoked when immediately before the popup menu is shown.
         /// </summary>
         public event EventHandler<EventArgs> PopupMenuShowing;
-        
+
         /// <summary>
         /// Invoked when immediately after the popup menu is shown.
         /// </summary>
@@ -914,7 +914,7 @@
 
                     // text can be null if the user hasn't completed making a selection. 
                     // If this is the case, we don't want to change the existing value.
-                    if (text == null) 
+                    if (text == null)
                         return;
                     path = editPath;
                 }
@@ -1466,7 +1466,7 @@
             string keyName = char.ConvertFromUtf32((int)Gdk.Keyval.ToUnicode((uint)chr));
             return char.TryParse(keyName, out char c) && !char.IsControl(c);
         }
-        
+
         /// <summary>
         /// Calcualtes the number of selected cells.
         /// </summary>
@@ -2490,7 +2490,7 @@
             {
                 ShowError(err);
             }
-            
+
         }
 
         /// <summary>

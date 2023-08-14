@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -32,6 +31,8 @@ namespace APSIM.Shared.Graphing
         /// <param name="y">Y-axis data.</param>
         /// <param name="xName">Name of the x-axis field displayed by this series.</param>
         /// <param name="yName">Name of the y-axis field displayed by this series.</param>
+        /// <param name="MakeXAxesLogarithmic">Should x axes be made logarithmic?</param>
+        /// <param name="MakeYAxesLogarithmic">Should y axes be made logarithmic?</param>
         /// <param name="x2">The second series' x data.</param>
         /// <param name="y2">The second series' y data.</param>
         public RegionSeries(string title,
@@ -42,8 +43,11 @@ namespace APSIM.Shared.Graphing
                             IEnumerable<object> x2,
                             IEnumerable<object> y2,
                             string xName,
-                            string yName) : base(title, colour, showLegend, x, y, xName, yName)
-        {if (x == null)
+                            string yName,
+                            bool MakeXAxesLogarithmic,
+                            bool MakeYAxesLogarithmic) : base(title, colour, showLegend, x, y, xName, yName, MakeXAxesLogarithmic, MakeYAxesLogarithmic)
+        {
+            if (x == null)
                 throw new ArgumentNullException(nameof(x));
             if (y == null)
                 throw new ArgumentNullException(nameof(y));

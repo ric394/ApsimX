@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using APSIM.Shared.Documentation;
+﻿using APSIM.Shared.Documentation;
 using APSIM.Shared.Graphing;
 using Models.Core;
 using Models.Core.Run;
 using Models.Factorial;
 using Models.Storage;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
 
 namespace Models
 {
@@ -197,7 +197,9 @@ namespace Models
                                              definition.X.Cast<object>().ToArray(),
                                              definition.Y.Cast<object>().ToArray(),
                                              definition.XFieldName,
-                                             definition.YFieldName));
+                                             definition.YFieldName,
+                                             definition.MakeXAxesLogarithmic,
+                                             definition.MakeYAxesLogarithmic));
                 }
                 else if (definition.Type == SeriesType.Scatter)
                 {

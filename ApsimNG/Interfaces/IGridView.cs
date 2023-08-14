@@ -1,8 +1,10 @@
-﻿namespace UserInterface.Interfaces
+﻿using System;
+using System.Collections.Generic;
+using UserInterface.EventArguments;
+
+namespace UserInterface.Interfaces
 {
-    using EventArguments;
-    using System;
-    using System.Collections.Generic;
+
 
     /// <summary>
     /// The interface to a grid view. Clients of this class should set the data source
@@ -70,7 +72,7 @@
         /// Gets the number of columns in the grid.
         /// </summary>
         int ColumnCount { get; }
-        
+
         /// <summary>
         /// Gets or sets the numeric grid format e.g. N3
         /// </summary>
@@ -110,7 +112,7 @@
         /// Add a separator line to the context menu
         /// </summary>
         void AddContextSeparator();
-        
+
         /// <summary>
         /// Add an option (on context menu) on the series grid.
         /// </summary>

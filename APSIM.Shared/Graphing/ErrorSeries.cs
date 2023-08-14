@@ -45,6 +45,8 @@ namespace APSIM.Shared.Graphing
         /// <param name="yError">Error data for the y series.</param>
         /// <param name="xName">Name of the x-axis field displayed by this series.</param>
         /// <param name="yName">Name of the y-axis field displayed by this series.</param>
+        /// <param name="MakeXAxesLogarithmic">Should x axes be made logarithmic?</param>
+        /// <param name="MakeYAxesLogarithmic">Should y axes be made logarithmic?</param>
         public ErrorSeries(string title,
                            Color colour,
                            bool showLegend,
@@ -57,7 +59,9 @@ namespace APSIM.Shared.Graphing
                            IEnumerable<object> xError,
                            IEnumerable<object> yError,
                            string xName,
-                           string yName) : base(title, colour, showLegend, x, y, line, marker, xName, yName)
+                           string yName,
+                           bool MakeXAxesLogarithmic,
+                           bool MakeYAxesLogarithmic) : base(title, colour, showLegend, x, y, line, marker, xName, yName, MakeXAxesLogarithmic, MakeYAxesLogarithmic)
         {
             BarThickness = barThickness;
             StopperThickness = stopperThickness;
@@ -81,6 +85,8 @@ namespace APSIM.Shared.Graphing
         /// <param name="yError">Error data for the y series.</param>
         /// <param name="xName">Name of the x-axis field displayed by this series.</param>
         /// <param name="yName">Name of the y-axis field displayed by this series.</param>
+        /// <param name="MakeXAxesLogarithmic">Should x axes be made logarithmic?</param>
+        /// <param name="MakeYAxesLogarithmic">Should y axes be made logarithmic?</param>
         public ErrorSeries(string title,
                            Color colour,
                            bool showLegend,
@@ -93,12 +99,14 @@ namespace APSIM.Shared.Graphing
                            IEnumerable<double> xError,
                            IEnumerable<double> yError,
                            string xName,
-                           string yName) : base(title, colour, showLegend, x, y, line, marker, xName, yName)
+                           string yName,
+                           bool MakeXAxesLogarithmic,
+                           bool MakeYAxesLogarithmic) : base(title, colour, showLegend, x, y, line, marker, xName, yName, MakeXAxesLogarithmic, MakeYAxesLogarithmic)
         {
             BarThickness = barThickness;
             StopperThickness = stopperThickness;
             XError = xError?.Cast<object>() ?? Enumerable.Empty<object>();
             YError = yError?.Cast<object>() ?? Enumerable.Empty<object>();
         }
-    }    
+    }
 }

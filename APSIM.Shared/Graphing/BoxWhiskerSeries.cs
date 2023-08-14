@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Drawing;
 
@@ -32,6 +31,8 @@ namespace APSIM.Shared.Graphing
         /// <param name="markerConfig">Marker configuration for outliers.</param>
         /// <param name="xName">Name of the x-axis field displayed by this series.</param>
         /// <param name="yName">Name of the y-axis field displayed by this series.</param>
+        /// <param name="MakeXAxesLogarithmic">Should x axes be made logarithmic?</param>
+        /// <param name="MakeYAxesLogarithmic">Should y axes be made logarithmic?</param>
         public BoxWhiskerSeries(string title,
                                 Color colour,
                                 bool showLegend,
@@ -40,7 +41,9 @@ namespace APSIM.Shared.Graphing
                                 Line lineConfig,
                                 Marker markerConfig,
                                 string xName,
-                                string yName) : base(title, colour, showLegend, x, y, xName, yName)
+                                string yName,
+                                bool MakeXAxesLogarithmic,
+                                bool MakeYAxesLogarithmic) : base(title, colour, showLegend, x, y, xName, yName, MakeXAxesLogarithmic, MakeYAxesLogarithmic)
         {
             LineConfig = lineConfig;
             MarkerConfig = markerConfig;

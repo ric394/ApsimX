@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using APSIM.Shared.Documentation;
+﻿using APSIM.Shared.Documentation;
 using APSIM.Shared.Utilities;
 using Models.Core;
 using Models.Interfaces;
+using System;
+using System.Collections.Generic;
 
 namespace Models.Functions
 {
@@ -67,7 +67,9 @@ namespace Models.Functions
                 new APSIM.Shared.Graphing.Line(APSIM.Shared.Graphing.LineType.Solid, APSIM.Shared.Graphing.LineThickness.Normal),
                 new APSIM.Shared.Graphing.Marker(APSIM.Shared.Graphing.MarkerType.None, APSIM.Shared.Graphing.MarkerSize.Normal, 1),
                 xName,
-                yName
+                yName,
+                false,
+                false
             );
             var xAxis = new APSIM.Shared.Graphing.Axis(xName, APSIM.Shared.Graphing.AxisPosition.Bottom, false, false);
             var yAxis = new APSIM.Shared.Graphing.Axis(yName, APSIM.Shared.Graphing.AxisPosition.Left, false, false);
