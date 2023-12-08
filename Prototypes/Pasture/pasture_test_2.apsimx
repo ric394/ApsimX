@@ -1,6 +1,6 @@
 {
   "$type": "Models.Core.Simulations, Models",
-  "Version": 168,
+  "Version": 169,
   "Name": "Simulations",
   "ResourceName": null,
   "Children": [
@@ -105,8 +105,8 @@
         },
         {
           "$type": "Models.Core.Zone, Models",
-          "Area": 1.0,
-          "Slope": 0.0,
+          "Area": 100.0,
+          "Slope": 4.2,
           "AspectAngle": 0.0,
           "Altitude": 50.0,
           "Name": "Paddock",
@@ -802,7 +802,17 @@
                     200.0,
                     200.0
                   ],
-                  "InitialValues": null,
+                  "InitialValues": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
                   "InitialValuesUnits": 0,
                   "WaterTableConcentration": 0.0,
                   "D0": 0.0,
@@ -838,9 +848,9 @@
                     2.0,
                     1.5,
                     1.5,
-                    "NaN",
-                    "NaN",
-                    "NaN"
+                    1.5,
+                    1.5,
+                    1.5
                   ],
                   "InitialValuesUnits": 0,
                   "WaterTableConcentration": 0.0,
