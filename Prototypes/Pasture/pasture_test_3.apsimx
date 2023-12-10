@@ -1,6 +1,6 @@
 {
   "$type": "Models.Core.Simulations, Models",
-  "Version": 168,
+  "Version": 169,
   "Name": "Simulations",
   "ResourceName": null,
   "Children": [
@@ -787,15 +787,15 @@
                     1.0
                   ],
                   "FOM": [
-                    284.1623738897736,
-                    235.57888224588825,
-                    161.9108400771599,
-                    111.27958450507167,
-                    76.48126537864974,
-                    52.564753723113135,
-                    36.12719167618349,
-                    24.82983151186737,
-                    17.06527699229268
+                    284.162,
+                    235.579,
+                    161.911,
+                    111.28,
+                    76.481,
+                    52.565,
+                    36.127,
+                    24.83,
+                    17.065
                   ],
                   "CarbonMetadata": null,
                   "FOMMetadata": null,
@@ -874,7 +874,17 @@
                     200.0,
                     200.0
                   ],
-                  "InitialValues": null,
+                  "InitialValues": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
                   "InitialValuesUnits": 0,
                   "WaterTableConcentration": 0.0,
                   "D0": 0.0,
@@ -910,9 +920,9 @@
                     2.0,
                     1.5,
                     1.5,
-                    "NaN",
-                    "NaN",
-                    "NaN"
+                    1.5,
+                    1.5,
+                    1.5
                   ],
                   "InitialValuesUnits": 0,
                   "WaterTableConcentration": 0.0,
