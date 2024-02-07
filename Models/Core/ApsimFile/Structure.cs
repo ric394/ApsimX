@@ -35,7 +35,7 @@ namespace Models.Core.ApsimFile
             modelToAdd.OnCreated();
             foreach (IModel model in modelToAdd.FindAllDescendants().ToList())
                 model.OnCreated();
-            
+
             // If the model is being added at runtime then need to resolve links and events.
             Simulation parentSimulation = parent.FindAncestor<Simulation>();
             if (parentSimulation != null && parentSimulation.IsRunning)
@@ -180,7 +180,6 @@ namespace Models.Core.ApsimFile
             modelToReplace.Parent.Children[index] = newModel;
             newModel.Parent = modelToReplace.Parent;
             newModel.Name = modelToReplace.Name;
-            newModel.Enabled = modelToReplace.Enabled;
 
             // Remove existing model from parent.
             modelToReplace.Parent = null;
