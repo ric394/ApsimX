@@ -20,6 +20,9 @@ jobs:
     env:
       ALL_APSIM_FILES: ""
     steps:
+
+    - name: echo github.head_ref
+      run: echo ${{ github.head_ref }}
     
     #- name: Checkout PR branch code
     #  uses: actions/checkout@v4
@@ -40,10 +43,7 @@ jobs:
         #git merge prrepo/${{ github.head_ref }}
         
     - name: Merge PR branch into current branch
-      run: |
-        git fetch origin ${{ github.base_ref }}
-        git checkout ${{ github.base_ref }}
-        git merge ${{ github.head_ref }}
+      run: git merge ${{ github.head_ref }}
 
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v4
