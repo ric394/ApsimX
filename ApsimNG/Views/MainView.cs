@@ -373,17 +373,17 @@ namespace UserInterface.Views
         /// <summary>
         /// Get the list and button view
         /// </summary>
-        public IListButtonView StartPage1 { get { return listButtonView1; } }
+        public ListButtonView StartPage1 { get { return listButtonView1; } }
 
         /// <summary>
         /// Get the list and button view
         /// </summary>
-        public IListButtonView StartPage2 { get { return listButtonView2; } }
+        public ListButtonView StartPage2 { get { return listButtonView2; } }
 
         /// <summary>
         /// Get the most recently used files list view
         /// </summary>
-        public IListButtonView MenuList {get {return menuList;}}
+        public ListButtonView MenuList {get {return menuList;}}
 
         /// <summary>
         /// Controls the height of the status panel.

@@ -8,7 +8,7 @@ namespace UserInterface.Views
 {
 
     /// <summary>A view for a list with a button bar</summary>
-    public class ListButtonView : ViewBase, IListButtonView
+    public class ListButtonView : ViewBase
     {
         private bool buttonsAreToolbar;
         private Box vbox;

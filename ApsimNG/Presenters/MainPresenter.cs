@@ -585,7 +585,7 @@ namespace UserInterface.Presenters
         /// Populate the view for the first time. Will throw if there are errors on startup.
         /// </summary>
         /// <param name="startPage">The start page to populate.</param>
-        private void PopulateStartPage(IListButtonView startPage)
+        private void PopulateStartPage(ListButtonView startPage)
         {
             // Add the buttons into the main window.
             startPage.AddButton(
@@ -676,7 +676,7 @@ namespace UserInterface.Presenters
         /// most-recently-used file display.
         /// </summary>
         /// <param name="startPage">The page to which the menu will be added.</param>
-        private void PopulatePopup(IListButtonView startPage)
+        private void PopulatePopup(ListButtonView startPage)
         {
             List<MenuDescriptionArgs> descriptions = new List<MenuDescriptionArgs>();
             MenuDescriptionArgs descOpen = new MenuDescriptionArgs();

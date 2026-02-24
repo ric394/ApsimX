@@ -10,12 +10,12 @@ namespace UserInterface.Interfaces
         /// <summary>
         /// Get the start page 1 view
         /// </summary>
-        IListButtonView StartPage1 { get; }
+        ListButtonView StartPage1 { get; }
 
         /// <summary>
         /// Get the start page 2 view
         /// </summary>
-        IListButtonView StartPage2 { get; }
+        ListButtonView StartPage2 { get; }
 
         /// <summary>
         /// Get the start page 3 view
@@ -25,7 +25,7 @@ namespace UserInterface.Interfaces
         /// <summary>
         /// Get the most recently used files list view
         /// </summary>
-        IListButtonView MenuList { get; }
+        ListButtonView MenuList { get; }
 
 
         /// <summary>Add a tab form to the tab control. Optionally select the tab if SelectTab is true.</summary>
