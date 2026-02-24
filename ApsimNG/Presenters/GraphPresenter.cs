@@ -14,7 +14,6 @@ using Models.Core;
 using Models.Storage;
 using UserInterface.Views;
 using UserInterface.Interfaces;
-// using Configuration = APSIMNG.Utility.Configuration;
 using APSIMNG.Utility;
 using APSIM.Numerics;
 
