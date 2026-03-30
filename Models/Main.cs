@@ -262,13 +262,23 @@ namespace Models
                         
                         var dict = row.Table.Columns
                                         .Cast<DataColumn>()
-                                        .ToDictionary(c => c.ColumnName, c => row[c].ToString());
+                                        .ToDictionary(c => c.ColumnName, c => StringUtilities.ConvertObjectToString(row[c]));
 
                         for (int i = 0; i < commandsList.Count; i++)
                             commandsList[i] = Macro.Replace(commandsList[i], dict);
 
                         foreach (string file in files)
-                            ExecuteCommands(options, commandsList, file, relativeToDirectory, row);
+                        {
+                            try
+                            {
+                                ExecuteCommands(options, commandsList, file, relativeToDirectory, row);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine("An error occurred when trying to run the batch commands. " + ex.ToString());
+                                exitCode++;
+                            }
+                        }
                     }
                 }
             }
