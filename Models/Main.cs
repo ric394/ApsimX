@@ -256,8 +256,10 @@ namespace Models
                     using var streamReader = new StreamReader(options.Batch);
                     var dataTable = DataTableUtilities.FromCSV(options.Batch, streamReader.ReadToEnd());
 
+                    Console.WriteLine($"Running batch commands for {dataTable.Rows.Count} rows");
                     foreach (DataRow row in dataTable.Rows)
                     {
+                        Console.WriteLine($"Running batch command {dataTable.Rows.IndexOf(row) + 1}/{dataTable.Rows.Count}.");
                         List<string> commandsList = File.ReadAllLines(commandFileName).ToList();
                         
                         var dict = row.Table.Columns
@@ -275,11 +277,12 @@ namespace Models
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine("An error occurred when trying to run the batch commands. " + ex.ToString());
+                                Console.WriteLine($"An error occurred when trying to run the batch command\n" + ex.ToString());
                                 exitCode++;
                             }
                         }
                     }
+                    Console.WriteLine($"Finished running batch commands for {dataTable.Rows.Count} rows with {exitCode} error(s).");
                 }
             }
             else
