@@ -1600,7 +1600,7 @@ namespace APSIM.Shared.Utilities
             StringBuilder text = new StringBuilder(length);
             foreach(char c in data)
                 text.Append(UIntToHex(c, 2));
-            return length + text;
+            return text.ToString();
         }
 
         /// <summary>
