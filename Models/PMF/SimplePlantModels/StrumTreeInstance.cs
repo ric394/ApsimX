@@ -926,7 +926,7 @@ namespace Models.PMF.SimplePlantModels
             double PurnedCanopyArea = Math.Min(MaturePrunedWidth/1000, areaWidth) * Math.Min(MaturePrunedWidth/1000, InterRowSpacing);
             double InitialCanopyArea = PurnedCanopyArea * relativeInitialSize;
             treeParams["InitialLeafWt"] += (InitialCanopyArea * 500 * (Decidious ? 0 : 1)).ToString();
-            treeParams["InitialRootWt"] += (InitialCanopyArea * 300 * (Decidious ? 0 : 1)).ToString();
+            treeParams["InitialRootWt"] += (InitialCanopyArea * 300 * (Decidious ? 0.5 : 1)).ToString();
 
             string[] commands = new string[treeParams.Count];
             treeParams.Values.CopyTo(commands, 0);
