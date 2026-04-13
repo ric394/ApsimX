@@ -537,6 +537,70 @@ namespace APSIM.Shared.Utilities
             return true;
         }
 
+        /// <summary>
+        /// Converts a MetFile object from using year and day columns to a single date column
+        /// </summary>
+        /// <param name="met"></param>
+        /// <returns>If the conversion happened</returns>
+        public static bool ConvertYearDayToDate(MetFile met)
+        {
+            bool hasYearColumn = false;
+            bool hasDayColumn = false;
+            bool hasDateColumn = false;
+            int yearIndex = 0;
+            int dayIndex = 0;
+            for (int i = 0; i < met.Columns.Length; i++)
+            {
+                string name = met.Columns[i].ToLower();
+                if (name == "year")
+                {
+                    hasYearColumn = true;
+                    yearIndex = i;
+                }
+                if (name == "day")
+                {
+                    hasDayColumn = true;
+                    dayIndex = i;
+                }
+                if (name == "date")
+                    hasDateColumn = true;
+            }
+
+            if (!hasYearColumn || !hasDayColumn || hasDateColumn)
+                return false;
+            
+            List<MetColumn> columns = new List<MetColumn>();
+            columns.Add(new MetColumn("date", ""));
+            for (int i = 0; i < met.data.Columns.Count(); i++)
+            {
+                if (i != yearIndex && i != dayIndex)
+                {
+                    columns.Add(met.data.Columns[i]);
+                }
+            }
+            met.data.Columns = columns;
+
+            foreach(MetRow row in met.data.Rows)
+            {
+                List<string> inputs = new List<string>();
+                inputs.Add(row.Date.ToString("yyyy-MM-dd"));
+                List<double> values = new List<double>();
+                values.Add(double.NaN);
+                for (int i = 0; i < row.Inputs.Count(); i++)
+                {
+                    if (i != yearIndex && i != dayIndex)
+                    {
+                        inputs.Add(row.Inputs[i]);
+                        values.Add(row.Values[i]);
+                    }
+                }
+                row.Inputs = inputs;
+                row.Values = values;
+            }
+
+            return true;
+        }
+
         ////////////////////////////////////////////////////////////////////////
         // Private Static Helper Functions
         ////////////////////////////////////////////////////////////////////////
