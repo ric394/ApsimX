@@ -39,6 +39,8 @@ namespace Models.PMF.SimplePlantModels
         private int _YearsToMaxDimension = 7;
         private double _WoodBulkDensity = 650;
         private double _DBHatMaturity = 20;
+        private double _MaximumLeafBiomass = 500;
+        private double _MaximumRootBiomass = 300;
         private double _TypicalCanopyArea = 5.6;
         private double _MaxRD = 3000;
         private double _CanopyBaseHeight = 1000;
@@ -261,6 +263,27 @@ namespace Models.PMF.SimplePlantModels
         {
             get { return _WoodBulkDensity; }
             set { _WoodBulkDensity = constrain(value, 400, 1600); }
+        }
+
+        /// <summary>Leaf mass (g/m2 of canopy)</summary>
+        [Separator("Maximum Leaf and Root mass.  Specify mass (g/m2) for organs of mature tree during late summer")]
+        [Description("Leaf mass (g/m2 of canopy)")]
+        [Units("g/m2")]
+        [Bounds(Lower = 10, Upper = 1500)]
+        public double MaximumLeafBiomass
+        {
+            get { return _MaximumLeafBiomass; }
+            set { _MaximumLeafBiomass = (int)constrain((double)value, 10, 1500); }
+        }
+
+        /// <summary>Fine root mass (g/m2 of canopy)</summary>
+        [Description("Fine root mass (g/m2 of canopy)")]
+        [Units("g/m2")]
+        [Bounds(Lower = 10, Upper = 1000)]
+        public double MaximumRootBiomass
+        {
+            get { return _MaximumRootBiomass; }
+            set { _MaximumRootBiomass = (int)constrain((double)value, 10, 1000); }
         }
 
         /// <summary>Tree Age At Start of Simulation (years)</summary>
@@ -705,6 +728,8 @@ namespace Models.PMF.SimplePlantModels
             {"InitialLeafWt", "[STRUM].Leaf.InitialWt.FixedValue = " },
             {"YearsToMaturity","[STRUM].RelativeAnnualDimension.XYPairs.X[2] = " },
             {"WoodWtAtMaturity","[STRUM].Wood.MatureWt.FixedValue = " },
+            {"LeafWtAtMaturity","[STRUM].Leaf.TotalCarbonDemand.TotalDMDemand.SizeDemand.SizeDemand.SizeDemand.TargetSize.gPerM2.FixedValue = " },
+            {"RootWtAtMaturity","[STRUM].Root.TotalCarbonDemand.TotalDMDemand.SizeDemand.SizeDemand.SizeDemand.TargetSize.gPerM2.FixedValue = " },
             {"YearsToMaxRD","[STRUM].Root.Network.RootFrontVelocity.RootGrowthDuration.YearsToMaxDepth.FixedValue = " },
             {"Number","[STRUM].Fruit.Number.RetainedPostThinning.FixedValue = " },
             {"FruitDensity","[STRUM].Fruit.Density.FixedValue = " },
@@ -873,6 +898,8 @@ namespace Models.PMF.SimplePlantModels
             treeParams["SurfaceKL"] += SurfaceKL.ToString();
             treeParams["YearsToMaturity"] += YearsToMaxDimension.ToString();
             treeParams["WoodWtAtMaturity"] += (woodMassAtMaxDimension * 1000).ToString();
+            treeParams["LeafWtAtMaturity"] += MaximumLeafBiomass.ToString();
+            treeParams["RootWtAtMaturity"] += MaximumRootBiomass.ToString();
             treeParams["YearsToMaxRD"] += YearsToMaxDimension.ToString();
             treeParams["Number"] += (Number*TreeCanopyArea).ToString();
             treeParams["FruitDensity"] += FruitDensity.ToString();
@@ -925,8 +952,8 @@ namespace Models.PMF.SimplePlantModels
             treeParams["InitialWoodWt"] += relativeInitialSize * woodMassAtMaxDimension * 1000 * (1 - pruningFractionWood);
             double PurnedCanopyArea = Math.Min(MaturePrunedWidth/1000, areaWidth) * Math.Min(MaturePrunedWidth/1000, InterRowSpacing);
             double InitialCanopyArea = PurnedCanopyArea * relativeInitialSize;
-            treeParams["InitialLeafWt"] += (InitialCanopyArea * 500 * (Decidious ? 0 : 1)).ToString();
-            treeParams["InitialRootWt"] += (InitialCanopyArea * 300 * (Decidious ? 0.5 : 1)).ToString();
+            treeParams["InitialLeafWt"] += (InitialCanopyArea * MaximumLeafBiomass * (Decidious ? 0 : 1)).ToString();
+            treeParams["InitialRootWt"] += (InitialCanopyArea * MaximumRootBiomass * (Decidious ? 0.5 : 1)).ToString();
 
             string[] commands = new string[treeParams.Count];
             treeParams.Values.CopyTo(commands, 0);
