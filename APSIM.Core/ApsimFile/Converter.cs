@@ -18,7 +18,7 @@ namespace APSIM.Core;
 internal class Converter
 {
     /// <summary>Gets the latest .apsimx file format version.</summary>
-    public static int LatestVersion { get { return 213; } }
+    public static int LatestVersion { get { return 214; } }
 
     /// <summary>Converts a .apsimx string to the latest version.</summary>
     /// <param name="st">XML or JSON string to convert.</param>
@@ -7502,19 +7502,52 @@ internal class Converter
         // change biomass removal objects that mention Rachis
         foreach (var OrganType in JsonUtilities.ChildrenOfType(root, "BiomassRemovalEvents"))
         {
-
             foreach (var fraction in OrganType["BiomassRemovalFractions"])
             {
                 if (fraction["PlantName"].ToString().Equals("Maize", StringComparison.InvariantCultureIgnoreCase))
                     if (fraction["OrganName"].ToString().Equals("Rachis", StringComparison.InvariantCultureIgnoreCase))
                         fraction["OrganName"] = "Cob";
             }
-
-
         }
-
-
-        }
-
-
     }
+
+    /// <summary>
+    /// Makes StoreTypes in Stores property of Supplement into children.
+    /// </summary>
+    /// <param name="root"></param>
+    /// <param name="fileName"></param>
+    private static void UpgradeToVersion214(JObject root, string fileName)
+    {
+        // Needs testing
+        foreach(var supplement in JsonUtilities.ChildrenOfType(root, "Supplement"))
+        {
+            foreach(var store in JsonUtilities.ChildrenOfType(root, "StoreType"))
+            {
+                var newChildStore = new JObject
+                {
+                    ["$type"] = "Models.GrazPlan.StoreType, Models",
+                    ["Name"] = store["Name"],
+                    ["Stored"] = store["Stored"],
+                    ["DMContent"] = store["DMContent"],
+                    ["DMD"] = store["DMD"],
+                    ["MEContent"] = store["MEContent"],
+                    ["CPConc"] = store["CPConc"],
+                    ["ProtDg"] = store["ProtDg"],
+                    ["PConc"] = store["PConc"],
+                    ["SConc"] = store["SConc"],
+                    ["EEConc"] = store["EEConc"],
+                    ["ADIP2CP"] = store["ADIP2CP"],
+                    ["AshAlk"] = store["AshAlk"],
+                    ["MaxPassage"] = store["MaxPassage"]
+                };
+                JObject supplementStoreParent = JsonUtilities.Parent(store) as JObject;
+                JsonUtilities.RemoveChild(supplementStoreParent, "Stores");
+                JsonUtilities.AddChild(supplementStoreParent, newChildStore);
+            }
+
+        }
+        
+    }
+
+
+}
