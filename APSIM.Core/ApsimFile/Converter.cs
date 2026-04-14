@@ -7537,10 +7537,14 @@ internal class Converter
         //    Examples (replace with your real renames):
         var map = new Dictionary<string, string>(StringComparer.Ordinal)
         {
-            { "Height.CanopyBaseHeight", "Height.PrunedCanopyBaseHeight" },
+            { "STRUM.Height.CanopyBaseHeight", "STRUM.Height.PrunedCanopyBaseHeight" },
+            { "[STRUM].Height.CanopyBaseHeight", "[STRUM].Height.PrunedCanopyBaseHeight" },
             { "STRUM.Height.SeasonalGrowth", "STRUM.Height.SeasonalDepthGrowth" },
+            { "[STRUM].Height.SeasonalGrowth", "[STRUM].Height.SeasonalDepthGrowth" },
             { "STRUM.CanopyBaseHeight", "STRUM.BaseHeight" },
-            { ".Trunk.", ".Wood." },
+            { "[STRUM].CanopyBaseHeight", "[STRUM].BaseHeight" },
+            { "STRUM.Trunk.", "STRUM.Wood." },
+            { "[STRUM].Trunk.", "[STRUM].Wood." },
         };
 
         // 2) REPORT models (Models.Report.VariableNames, Models)
