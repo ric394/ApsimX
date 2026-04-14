@@ -14,7 +14,6 @@ using Models.Core.Run;
 using Models.Interfaces;
 using Models.Storage;
 using NUnit.Framework;
-using PdfSharp.Quality;
 
 namespace UnitTests.Weather
 {
@@ -142,7 +141,7 @@ namespace UnitTests.Weather
             MetFile data2 = new MetFile();
 
             DirectoryInfo info = Directory.CreateTempSubdirectory();
-            string tempdirectory = Path.GetDirectoryName(info.FullName).Replace("\\", "/");
+            string tempdirectory = info.FullName.Replace("\\", "/");
             
             dataStart = new MetFile(file);
             MetFile.ConvertYearDayToDate(dataStart);
