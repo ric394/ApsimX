@@ -14,6 +14,7 @@ using Models.Core.Run;
 using Models.Interfaces;
 using Models.Storage;
 using NUnit.Framework;
+using PdfSharp.Quality;
 
 namespace UnitTests.Weather
 {
@@ -120,66 +121,88 @@ namespace UnitTests.Weather
         /// <summary>
         /// Tests a weather file in .bin (Binary) format.
         /// </summary>
-        [Test]
-        public void MetWeatherFileTest()
+        [TestCase("BinaryMetfile.bin", "TextToBinary")]
+        [TestCase("CommentsInData.MET", "TextToBinary")]
+        [TestCase("CommentsInHeader.met", "TextToBinary")]
+        [TestCase("NoExtensionInZip.zip", "TextToBinary")]
+        [TestCase("WithNaNs.zip", "TextToBinary")]
+        [TestCase("BinaryMetfileWithoutExtension", "TextToBinary")]
+        [TestCase("BinaryMetfile.bin", "BinaryToText")]
+        [TestCase("CommentsInData.MET", "BinaryToText")]
+        [TestCase("CommentsInHeader.met", "BinaryToText")]
+        [TestCase("NoExtensionInZip.zip", "BinaryToText")]
+        [TestCase("WithNaNs.zip", "BinaryToText")]
+        [TestCase("BinaryMetfileWithoutExtension", "BinaryToText")]
+        public void MetWeatherFileTest(string filepath, string order)
         {
-            string directory = PathUtilities.GetApsimXDirectory() + "/Tests/UnitTests/Weather/WeatherFiles/";
+            string file = PathUtilities.GetApsimXDirectory() + "/Tests/UnitTests/Weather/WeatherFiles/" + filepath;
 
-            List<string> files = new List<string>();
-            foreach (var file in Directory.EnumerateFiles(directory, "*.met", SearchOption.AllDirectories))
-                files.Add(file);
-
+            MetFile dataStart = new MetFile();
             MetFile data1 = new MetFile();
             MetFile data2 = new MetFile();
-            MetFile data3 = new MetFile();
-            foreach(string file in files)
+
+            DirectoryInfo info = Directory.CreateTempSubdirectory();
+            string tempdirectory = Path.GetDirectoryName(info.FullName).Replace("\\", "/");
+            
+            dataStart = new MetFile(file);
+            MetFile.ConvertYearDayToDate(dataStart);
+
+            if (order == "TextToBinary")
             {
-                DirectoryInfo info = Directory.CreateTempSubdirectory();
-
-                data1 = new MetFile(file);
-                data1.Save(info.FullName + "/test1.met", MetFile.MetFileFormat.Text);
-                data1.Save(info.FullName + "/test1.bin", MetFile.MetFileFormat.Binary);
-
-                data2 = new MetFile(info.FullName + "/test1.met");
-                data3 = new MetFile(info.FullName + "/test1.bin");
-
-                for(int i = 0; i < data1.Comments.Length; i++)
-                {
-                    Assert.That(data1.Comments[i], Is.EqualTo(data2.Comments[i]));
-                    Assert.That(data1.Comments[i], Is.EqualTo(data3.Comments[i]));
-                }
-
-                for(int i = 0; i < data1.Contants.Length; i++)
-                {
-                    Assert.That(data1.Contants[i], Is.EqualTo(data2.Contants[i]));
-                    Assert.That(data1.GetConstant(data1.Contants[i]), Is.EqualTo(data2.GetConstant(data2.Contants[i])));
-                    Assert.That(data1.Contants[i], Is.EqualTo(data3.Contants[i]));
-                    Assert.That(data1.GetConstant(data1.Contants[i]), Is.EqualTo(data3.GetConstant(data3.Contants[i])));
-                }
-
-                for(int i = 0; i < data1.Columns.Length; i++)
-                {
-                    Assert.That(data1.Columns[i], Is.EqualTo(data2.Columns[i]));
-                    Assert.That(data1.Columns[i], Is.EqualTo(data3.Columns[i]));
-                }
-
-                for(int i = 0; i < data1.Units.Length; i++)
-                {
-                    Assert.That(data1.Units[i], Is.EqualTo(data2.Units[i]));
-                    Assert.That(data1.Units[i], Is.EqualTo(data3.Units[i]));
-                }
-
-                DateTime date = data1.StartDate;
-                for(int i = 0; i < data1.NumberOfDays; i++)
-                {
-                    double[] inputs1 = data1.GetDay(date);
-                    double[] inputs2 = data2.GetDay(date);
-                    double[] inputs3 = data3.GetDay(date);
-                    date = date.AddDays(1);
-                    Assert.That(inputs1, Is.EqualTo(inputs2));
-                    Assert.That(inputs1, Is.EqualTo(inputs3));
-                }
+                dataStart.Save(tempdirectory + "/data1.met", MetFile.MetFileFormat.Text);
+                data1 = new MetFile(tempdirectory + "/data1.met");
+                data1.Save(tempdirectory + "/data2.bin", MetFile.MetFileFormat.Binary);
+                data2 = new MetFile(tempdirectory + "/data2.bin");
             }
+            else
+            {
+                dataStart.Save(tempdirectory + "/data1.bin", MetFile.MetFileFormat.Binary);
+                data1 = new MetFile(tempdirectory + "/data1.bin");
+                data1.Save(tempdirectory + "/data2.met", MetFile.MetFileFormat.Text);
+                data2 = new MetFile(tempdirectory + "/data2.met");
+            }
+
+            Assert.That(MetFile.Compare(dataStart, data1), Is.True);
+            Assert.That(MetFile.Compare(dataStart, data2), Is.True);
+
+            for(int i = 0; i < dataStart.Comments.Length; i++)
+            {
+                Assert.That(dataStart.Comments[i], Is.EqualTo(data1.Comments[i]));
+                Assert.That(dataStart.Comments[i], Is.EqualTo(data2.Comments[i]));
+            }
+
+            for(int i = 0; i < dataStart.Contants.Length; i++)
+            {
+                Assert.That(dataStart.Contants[i], Is.EqualTo(data1.Contants[i]));
+                Assert.That(dataStart.GetConstant(dataStart.Contants[i]), Is.EqualTo(data1.GetConstant(data1.Contants[i])));
+                Assert.That(dataStart.Contants[i], Is.EqualTo(data2.Contants[i]));
+                Assert.That(dataStart.GetConstant(dataStart.Contants[i]), Is.EqualTo(data2.GetConstant(data2.Contants[i])));
+            }
+
+            for(int i = 0; i < dataStart.Columns.Length; i++)
+            {
+                Assert.That(dataStart.Columns[i], Is.EqualTo(data1.Columns[i]));
+                Assert.That(dataStart.Columns[i], Is.EqualTo(data2.Columns[i]));
+            }
+
+            for(int i = 0; i < dataStart.Units.Length; i++)
+            {
+                Assert.That(dataStart.Units[i], Is.EqualTo(data1.Units[i]));
+                Assert.That(dataStart.Units[i], Is.EqualTo(data2.Units[i]));
+            }
+
+            DateTime date = dataStart.StartDate;
+            for(int i = 0; i < dataStart.NumberOfDays; i++)
+            {
+                double[] inputs1 = dataStart.GetDay(date);
+                double[] inputs2 = data1.GetDay(date);
+                double[] inputs3 = data2.GetDay(date);
+                date = date.AddDays(1);
+                Assert.That(inputs1, Is.EqualTo(inputs2));
+                Assert.That(inputs1, Is.EqualTo(inputs3));
+            }
+
+            Directory.Delete(tempdirectory, true);
         }
 
         [Test]

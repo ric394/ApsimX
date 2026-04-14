@@ -241,6 +241,11 @@ namespace APSIM.Shared.Utilities
                     format = MetFileFormat.Binary;
                 bytes = File.ReadAllBytes(filepath);
             }
+            else if (!filepath.Contains('.'))
+            {
+                format = MetFileFormat.Binary;
+                bytes = File.ReadAllBytes(filepath);
+            }
             else
             {
                 string extension = filepath.Substring(filepath.LastIndexOf('.'));
@@ -1125,13 +1130,31 @@ namespace APSIM.Shared.Utilities
                     }
                     else
                     {
-                        double difference = Math.Round(previousValue - row.Values[i], decimalPlaces);
-                        string differenceString = difference.ToString();
-                        if (differenceString == "0")
-                            output.Append(UIntToHex(0));
+                        double value = row.Values[i];
+                        if (double.IsNaN(value))
+                        {
+                            output.Append(EncodeNumber("nan"));
+                            previousValue = double.NaN;
+                        }
                         else
-                            output.Append(EncodeNumber(differenceString));
-                        previousValue = row.Values[i];
+                        {
+                            if (double.IsNaN(previousValue))
+                            {
+                                double difference = Math.Round(-row.Values[i], decimalPlaces);
+                                string differenceString = difference.ToString();
+                                output.Append(EncodeNumber(differenceString));
+                            }
+                            else
+                            {
+                                double difference = Math.Round(previousValue - row.Values[i], decimalPlaces);
+                                string differenceString = difference.ToString();
+                                if (differenceString == "0")
+                                    output.Append(UIntToHex(0));
+                                else
+                                    output.Append(EncodeNumber(differenceString));
+                            }
+                            previousValue = row.Values[i];
+                        }
                     }
                 }
             }
@@ -1238,6 +1261,9 @@ namespace APSIM.Shared.Utilities
                     else
                     {
                         string differenceString = DecodeNumber(data);
+                        if (double.IsNaN(previousValue))
+                            previousValue = 0;
+
                         if (differenceString.Length != 0)
                         {
                             previousValue = Math.Round(previousValue - double.Parse(differenceString), decimalPlaces);
@@ -2141,7 +2167,14 @@ namespace APSIM.Shared.Utilities
                 metData.Columns.Add(new MetColumn(HexToString(data), ""));
 
             for (int i = 1; i < columnsLength + 1; i++)
-                metData.Columns[i].Unit = HexToString(data);
+            {
+                string unit = HexToString(data);
+                if (unit.StartsWith('('))
+                    unit = unit.Substring(1);
+                if (unit.EndsWith(')'))
+                    unit = unit.Substring(0, unit.Length-1);
+                metData.Columns[i].Unit = unit;
+            }
 
             //data
             DateTime date;
@@ -2166,7 +2199,7 @@ namespace APSIM.Shared.Utilities
 
             foreach(MetRow row in metData.Rows)
             {
-                for (int i = 0; i < columnsLength; i++)
+                for (int i = 1; i < columnsLength + 1; i++)
                 {
                     string number = DecodeNumber(data);
                     //the original writer had a bug where it would store a 0 infront of the nan value, causing columns
@@ -2176,6 +2209,7 @@ namespace APSIM.Shared.Utilities
                         DecodeNumber(data);
                         row.Values.Add(double.NaN);
                         row.Inputs.Add("nan");
+                        metData.Columns[i].UpdateType("nan");
                         metData.Columns[i].UpdateWidth("nan");
                     }
                     else
@@ -2183,6 +2217,7 @@ namespace APSIM.Shared.Utilities
                         double value = double.Parse(number);
                         row.Values.Add(value);
                         row.Inputs.Add(value.ToString());
+                        metData.Columns[i].UpdateType(value.ToString());
                         metData.Columns[i].UpdateWidth(value.ToString());
                     }
                 }
@@ -2249,7 +2284,7 @@ namespace APSIM.Shared.Utilities
 
             foreach(MetRow row in metData.Rows)
             {
-                for (int i = 0; i < columnsLength; i++)
+                for (int i = 1; i < columnsLength + 1; i++)
                 {
                     string number = DecodeNumber(data);
                     //the original writer had a bug where it would store a 0 infront of the nan value, causing columns
