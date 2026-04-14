@@ -201,8 +201,6 @@ namespace UnitTests.Weather
                 Assert.That(inputs1, Is.EqualTo(inputs2));
                 Assert.That(inputs1, Is.EqualTo(inputs3));
             }
-
-            Directory.Delete(tempdirectory, true);
         }
 
         [Test]
