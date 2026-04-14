@@ -7518,14 +7518,14 @@ internal class Converter
     /// <param name="fileName"></param>
     private static void UpgradeToVersion214(JObject root, string fileName)
     {
-        // Needs testing
-        foreach(var supplement in JsonUtilities.ChildrenOfType(root, "Supplement"))
+        foreach(JObject supplement in JsonUtilities.ChildrenOfType(root, "Supplement"))
         {
-            foreach(var store in JsonUtilities.ChildrenOfType(root, "StoreType"))
+            var stores = supplement["Stores"];
+            foreach(JObject store in stores.Cast<JObject>())
             {
                 var newChildStore = new JObject
                 {
-                    ["$type"] = "Models.GrazPlan.StoreType, Models",
+                    ["$type"] = store["$type"],
                     ["Name"] = store["Name"],
                     ["Stored"] = store["Stored"],
                     ["DMContent"] = store["DMContent"],
@@ -7541,10 +7541,9 @@ internal class Converter
                     ["MaxPassage"] = store["MaxPassage"]
                 };
                 JObject supplementStoreParent = JsonUtilities.Parent(store) as JObject;
-                JsonUtilities.RemoveChild(supplementStoreParent, "Stores");
-                JsonUtilities.AddChild(supplementStoreParent, newChildStore);
+                JsonUtilities.AddChild(supplementStoreParent, newChildStore);        
             }
-
+            supplement.Remove("Stores");
         }
         
     }
