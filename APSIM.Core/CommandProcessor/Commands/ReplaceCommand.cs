@@ -114,17 +114,20 @@ public partial class ReplaceCommand : IModelCommand
         if (originalModel is null || replacementModel is null)
             return;
 
-        replacementModel.Enabled = originalModel.Enabled;
-
         var originalChildren = originalModel.GetChildren()?.ToArray();
         var replacementChildren = replacementModel.GetChildren()?.ToArray();
 
         if (originalChildren is null || replacementChildren is null || originalChildren.Length == 0 || replacementChildren.Length == 0)
             return;
 
-        int childCount = Math.Min(originalChildren.Length, replacementChildren.Length);
-        for (int i = 0; i < childCount; i++)
-            CopyEnabledStateRecursively(originalChildren[i], replacementChildren[i]);
+        foreach(var replacementChild in replacementChildren)
+        {
+            // Finds the first child where the name is the same.
+            // Replacements can differ on type.
+            var originalChild = originalChildren.FirstOrDefault(c => c.Name == replacementChild.Name);
+            if (originalChild != null)
+                CopyEnabledStateRecursively(originalChild, replacementChild);
+        }
     }
 
     /// <summary>
