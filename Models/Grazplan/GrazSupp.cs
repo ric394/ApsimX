@@ -101,8 +101,7 @@ namespace Models.GrazPlan
     /// <summary>
     /// Supplement information
     /// </summary>
-    [Serializable]
-    public class SuppInfo
+    public interface ISuppInfo
     {
         /// <summary>
         /// Gets or sets a value indicating whether the supplement is a roughage.
