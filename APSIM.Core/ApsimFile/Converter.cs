@@ -7607,6 +7607,10 @@ internal class Converter
         {
             foreach (string param in toRescale)
             {
+
+                if (!ScrumTreeInstance.TryGetValue(param, out JToken token))
+                    continue;
+
                 if ((double)ScrumTreeInstance[param] > 100)
                     ScrumTreeInstance[param] = (double)ScrumTreeInstance[param] / 1000;
             }
