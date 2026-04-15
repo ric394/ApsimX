@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using APSIM.Core;
+using APSIM.Shared.Documentation.Extensions;
 using APSIM.Shared.Utilities;
 using Models.Core;
 using Models.Core.Run;
@@ -19,47 +21,55 @@ namespace Models.Factorial
     [ValidParent(ParentType = typeof(Factor))]
     [ValidParent(ParentType = typeof(Permutation))]
     [Serializable]
-    [ViewName("UserInterface.Views.EditorView")]
-    [PresenterName("UserInterface.Presenters.CompositeFactorPresenter")]
-    public class CompositeFactor : Model, IReferenceExternalFiles, IStructureDependency
+    [ViewName("UserInterface.Views.QuadView")]
+    [PresenterName("UserInterface.Presenters.QuadPresenter")]
+    public class CompositeFactor : Model, IReferenceExternalFiles
     {
-        /// <summary>Structure instance supplied by APSIM.core.</summary>
-        [field: NonSerialized]
-        public IStructure Structure { private get; set; }
+        /// <summary>
+        /// A list of models that have been passed into this composite factor 
+        /// by the one edge case contructor that does that
+        /// </summary>
+        private List<IModel> _models { get; set; }
+
+        /// <summary>Gets or sets the specification to create overides for a simulation.</summary>
+        public List<string> Specifications { get; set; }
 
         /// <summary>Parameterless constrctor needed for serialisation</summary>
         public CompositeFactor()
         {
+            _models = new List<IModel>();
+            Specifications = new List<string>();
+        }
+
+        /// <summary>Constructor</summary>
+        public CompositeFactor(string name, string specification)
+        {
+            _models = new List<IModel>();
+            Name = name;
+            Specifications = new List<string>() {specification};
         }
 
         /// <summary>Constructor</summary>
         public CompositeFactor(string name, string path, object value)
         {
-            Paths = new List<string> { path };
-            Values = new List<object> { value };
-            Name = name;
+            CreateSpecifications(path, value);
         }
 
         /// <summary>Constructor</summary>
         public CompositeFactor(Factor parentFactor, string path, object value)
         {
             Parent = parentFactor;
-            Paths = new List<string> { path };
-            Values = new List<object> { value };
-            if (value is IModel)
-                Name = (value as IModel).Name;
-            else
-                Name = value.ToString();
+            CreateSpecifications(path, value);
         }
 
-        /// <summary>Gets or sets the specification to create overides for a simulation.</summary>
-        public List<string> Specifications { get; set; }
-
-        /// <summary>Gets all paths.</summary>
-        public List<string> Paths { get; set; }
-
-        /// <summary>Gets all values.</summary>
-        public List<object> Values { get; set; }
+        /// <summary>Contents of the CSV file</summary>
+        [Display]
+        public DataTable Data
+        {
+            get {
+                return new DataTable();
+            }
+        }
 
         /// <summary>
         /// Apply this CompositeFactor to the specified simulation
@@ -67,124 +77,39 @@ namespace Models.Factorial
         /// <param name="simulationDescription">A description of a simulation.</param>
         public void ApplyToSimulation(SimulationDescription simulationDescription)
         {
-            ParseAllSpecifications(out List<string> allPaths, out List<object> allValues);
-
-            if (allPaths.Count > 1 && allPaths.Count != allValues.Count)
-                throw new Exception("The number of factor paths does not match the number of factor values");
+            List<CompositeFactorPair> pairs = ParseSpecifications();
 
             // Add a simulation override for each path / value combination.
-            for (int i = 0; i != allPaths.Count; i++)
+            foreach(CompositeFactorPair pair in pairs)
             {
-                if (allValues[i] is INodeModel model)
-                    simulationDescription.AddOverride(new ReplaceCommand(new ModelReference(model),
-                                                                         allPaths[i],
-                                                                         multiple: true,
-                                                                         ReplaceCommand.MatchType.NameOrType,
-                                                                         newName: null));
+                if (pair.Value is INodeModel model)
+                {
+                    ModelReference reference = new ModelReference(model);
+                    ReplaceCommand command = new ReplaceCommand(reference, pair.Path, true, ReplaceCommand.MatchType.NameOrType);
+                    simulationDescription.AddOverride(command);
+                }
                 else
-                    simulationDescription.AddOverride(new SetPropertyCommand(allPaths[i], "=", allValues[i].ToString(), multiple: true));
+                {
+                    SetPropertyCommand command = new SetPropertyCommand(pair.Path, "=", pair.Value.ToString(), multiple: true);
+                    simulationDescription.AddOverride(command);
+                }
             }
 
             if (!(Parent is Factors))
-            {
-                // Set descriptors in simulation.
-                string descriptorName = Name;
-                if (Parent != null)
-                    descriptorName = Parent.Name;
-                if (Specifications != null && Specifications.Count > 0)
-                {
-                    // compound factor value ie. one that has multiple specifications.
-                    simulationDescription.Descriptors.Add(new SimulationDescription.Descriptor(descriptorName, Name));
-                }
-                else
-                {
-                    if (allValues[0] is IModel)
-                        simulationDescription.Descriptors.Add(new SimulationDescription.Descriptor(descriptorName, (allValues[0] as IModel).Name));
-                    else
-                        simulationDescription.Descriptors.Add(new SimulationDescription.Descriptor(descriptorName, allValues[0].ToString()));
-                }
-            }
-        }
-
-        private void ParseAllSpecifications(out List<string> paths, out List<object> values)
-        {
-            paths = new List<string>();
-            values = new List<object>();
-
-            if (Specifications != null)
-            {
-                // Compound factorvalue i.e. multiple specifications that all
-                // work on a single simulation.
-                foreach (var specification in Specifications)
-                    ParseSpecification(specification, paths, values);
-            }
-            if (Paths != null)
-            {
-                paths.AddRange(Paths);
-                values.AddRange(Values);
-            }
-
-            // If there are any child models which aren't being used as
-            // a factor value (e.g. as a model replacement), throw an exception.
-            IEnumerable<IModel> extraModels = Children.Except(values.OfType<IModel>());
-            foreach (var model in extraModels)
-                if (model.Enabled && !(model is Memo))
-                    throw new InvalidOperationException($"Error in composite factor {Name}: Unused child models found: {string.Join(", ", extraModels.Select(m => m.Name))}");
-        }
-
-        /// <summary>
-        /// Parse the specification into paths and values.
-        /// </summary>
-        /// <param name="specification">The specification to parse.</param>
-        /// <param name="allPaths">The list of paths to add to.</param>
-        /// <param name="allValues">The list of values to add to.</param>
-        private void ParseSpecification(string specification, List<string> allPaths, List<object> allValues)
-        {
-            if (string.IsNullOrEmpty(specification) || specification.StartsWith("//"))
-                return;
-
-            string path = specification;
-            object value;
-            if (path.Contains("="))
-            {
-                value = StringUtilities.SplitOffAfterDelimiter(ref path, "=").Trim();
-                if (value == null || value as string == "")
-                    throw new Exception($"Error in composite factor {Name}: Unable to parse factor specification {specification}: No value was provided");
-
-                allPaths.Add(path.Trim());
-                allValues.Add(value.ToString().Trim());
-            }
-            else
-            {
-                // Find the model that we are to replace.
-                var experiment = Structure.FindParent<Experiment>(recurse: true);
-                var baseSimulation = Structure.FindChild<Simulation>(relativeTo: experiment);
-                var modelToReplace = baseSimulation.Node.Get(path) as IModel;
-
-                if (modelToReplace == null)
-                    throw new Exception($"Error in CompositeFactor {Name}: Unable to find a model to replace from path '{path}'");
-
-                // Now find a child of that type.
-                IEnumerable<IModel> possibleMatches = Structure.FindChildren<IModel>().Where(c => modelToReplace.GetType().IsAssignableFrom(c.GetType()));
-                if (possibleMatches.Count() > 1)
-                    value = possibleMatches.FirstOrDefault(m => m.Name == modelToReplace.Name);
-                else if (possibleMatches.Count() == 1)
-                    value = possibleMatches.First();
-                else
-                    throw new NullReferenceException($"Error in composite factor {Name}: Unable to parse factor specification {specification}: No children are of type {modelToReplace.GetType().Name}, so model {modelToReplace.Name} cannot be overriden.");
-
-                allPaths.Add(path.Trim());
-                allValues.Add(value);
-            }
+                simulationDescription.Descriptors.Add(new SimulationDescription.Descriptor(Parent.Name, Name));
         }
 
         /// <summary>Return paths to all files referenced by this model.</summary>
         public IEnumerable<string> GetReferencedFileNames()
         {
-            ParseAllSpecifications(out List<string> paths, out List<object> values);
+            List<CompositeFactorPair> pairs = ParseSpecifications();
 
-            Simulations sims = Structure.FindParent<Simulations>(recurse: true);
-            IEnumerable<string> result = values.OfType<string>().Where(str => File.Exists(PathUtilities.GetAbsolutePath(str, sims.FileName)));
+            Simulations sims = Node.FindParent<Simulations>(recurse: true);
+            List<string> values = new List<string>();
+            foreach(CompositeFactorPair pair in pairs)
+                if (pair.ValueType == typeof(string))
+                    values.Add(pair.Value.ToString());
+            IEnumerable<string> result = values.Where(str => File.Exists(PathUtilities.GetAbsolutePath(str, sims.FileName)));
             return result;
         }
 
@@ -192,6 +117,108 @@ namespace Models.Factorial
         public void RemovePathsFromReferencedFileNames()
         {
             throw new NotImplementedException();
+        }
+
+        private void CreateSpecifications(string path, object value)
+        {
+            if (value is IModel model)
+            {
+                _models = new List<IModel>() {model};
+                Name = model.Name;
+                Specifications = new List<string>() {$"{path}"};
+            }
+            else
+            {
+                _models = new List<IModel>();
+                Name = value.ToString();
+                Specifications = new List<string>() {$"{path}={value}"};
+            }
+        }
+
+        /// <summary>
+        /// Parse the specification into paths and values.
+        /// </summary>
+        private List<CompositeFactorPair> ParseSpecifications()
+        {
+            List<CompositeFactorPair> pairs = new List<CompositeFactorPair>();
+
+            List<string> specifications = Specifications;
+            //remove all blank lines
+            specifications = specifications.Where(specification => specification.Length > 0).ToList();
+            //remove all commented lines
+            specifications = specifications.Where(specification => !specification.StartsWith("//")).ToList();
+
+            if (specifications == null && specifications.Count == 0)
+                return pairs;
+
+            List<IModel> models = new List<IModel>();
+            foreach(string specification in specifications)
+            {
+                string path = specification;
+                object value;
+                if (path.Contains("="))
+                {
+                    value = StringUtilities.SplitOffAfterDelimiter(ref path, "=").Trim();
+                    if (value == null || value as string == "")
+                        throw new Exception($"Error in composite factor {Name}: Unable to parse factor specification {specification}: No value was provided");
+                    pairs.Add(new CompositeFactorPair(path.Trim(), value.ToString().Trim(), typeof(string)));
+                }
+                else
+                {
+                    // Find the model that we are to replace.
+                    Experiment experiment = Parent.Node.FindParent<Experiment>(recurse: true);
+                    Simulation baseSimulation = experiment.Node.FindChild<Simulation>(relativeTo: experiment);
+                    IModel modelToReplace = baseSimulation.Node.Get(path) as IModel;
+                    if (modelToReplace == null)
+                        throw new Exception($"Error in CompositeFactor {Name}: Unable to find a model to replace from path '{path}'");
+
+                    IEnumerable<IModel> modelsToSearch = Node.FindChildren<IModel>();
+                    if (modelsToSearch.Count() == 0)
+                        modelsToSearch = _models;
+                    // Now find a child of that type.
+                    IEnumerable<IModel> possibleMatches = modelsToSearch.Where(c => modelToReplace.GetType().IsAssignableFrom(c.GetType()));
+                    if (possibleMatches.Count() > 1)
+                        value = possibleMatches.FirstOrDefault(m => m.Name == modelToReplace.Name);
+                    else if (possibleMatches.Count() == 1)
+                        value = possibleMatches.First();
+                    else
+                        throw new NullReferenceException($"Error in composite factor {Name}: Unable to parse factor specification {specification}: No children are of type {modelToReplace.GetType().Name}, so model {modelToReplace.Name} cannot be overriden.");
+
+                    pairs.Add(new CompositeFactorPair(path.Trim(), value, typeof(IModel)));
+                    models.Add(value as IModel);
+                }
+            }
+
+            // If there are any child models which aren't being used as
+            // a factor value (e.g. as a model replacement), throw an exception.
+            IEnumerable<IModel> extraModels = Children.Except(models.OfType<IModel>());
+            foreach (var model in extraModels)
+                if (model.Enabled && !(model is Memo))
+                    throw new InvalidOperationException($"Error in composite factor {Name}: Unused child models found: {string.Join(", ", extraModels.Select(m => m.Name))}");
+
+            if (pairs.Count == 0)
+                throw new InvalidOperationException($"Error in composite factor {Name}: Has no specifications");
+
+            return pairs;
+        }
+
+        private class CompositeFactorPair
+        {
+            /// <summary>Path to change</summary>
+            public string Path {get; private set;}
+
+            /// <summary>Value/Model to change to</summary>
+            public object Value {get; private set;}
+
+            /// <summary>The type of the value</summary>
+            public Type ValueType {get; private set;}
+
+            public CompositeFactorPair(string path, object value, Type valueType)
+            {
+                Path = path;
+                Value = value;
+                ValueType = valueType;
+            }
         }
     }
 }
