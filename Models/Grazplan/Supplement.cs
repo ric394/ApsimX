@@ -3,7 +3,9 @@
 // -----------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using APSIM.Core;
+using DocumentFormat.OpenXml.Office2010.CustomUI;
 using Models.Core;
 using Newtonsoft.Json;
 
@@ -358,6 +360,57 @@ namespace Models.GrazPlan
         }
 
         /// <summary>
+        /// Gets the supplement store by name.
+        /// </summary>
+        /// <param name="name">Name of the supplement store.</param>
+        /// <returns>The supplement store with the specified name, or null if not found.</returns>
+        public StoreType GetSupplementStoreByName(string name)
+        {
+            return Children.FirstOrDefault(store => store.Name == name) as StoreType;
+        }
+
+        /// <summary>
+        /// Gets the supplement store by index.
+        /// </summary>
+        /// <param name="index">The index of the supplement store.</param>
+        /// <returns>The supplement store with the specified index, or null if not found.</returns>
+        public StoreType GetSupplementStoreByIndex(int index)
+        {
+            return Children.OfType<StoreType>().ElementAtOrDefault(index);
+        }
+
+
+        /// <summary>
+        /// Gets the total amount of supplements in all stores.
+        /// </summary>
+        /// <returns>The total amount of supplements in all stores.</returns>
+        public double GetTotalAmountInStore()
+        {
+            return Children.OfType<StoreType>().Sum(store => store.Stored);
+        }
+
+        /// <summary>
+        /// Adds the specified supplement to the store.
+        /// </summary>
+        public void AddToStore(StoreType supplement)
+        {
+            theModel.AddToStore(supplement.Stored, 
+                supplement.Name, 
+                Convert.ToInt32(supplement.IsRoughage), 
+                supplement.DMContent, 
+                supplement.DMD, 
+                supplement.MEContent, 
+                supplement.CPConc, 
+                supplement.ProtDg, 
+                supplement.PConc, 
+                supplement.SConc, 
+                supplement.EEConc, 
+                supplement.ADIP2CP, 
+                supplement.AshAlk, 
+                supplement.MaxPassage);
+        }
+
+        /// <summary>
         /// Runs at the start of the simulation
         /// Sets up the list of paddocks, if that hasn't been provided explicitly
         /// </summary>
@@ -651,6 +704,7 @@ namespace Models.GrazPlan
             {
                 supp.Feed(supplement, amount, paddock, feedSuppFirst);
             }
+
         }
     }
 }

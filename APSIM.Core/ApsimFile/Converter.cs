@@ -7512,46 +7512,60 @@ internal class Converter
     }
 
     /// <summary>
-    /// Makes StoreTypes in Stores property of Supplement into children.
+    /// Makes StoreTypes in Stores property of Supplement into children instead.
+    /// Also updates stores report variables as well.
     /// </summary>
     /// <param name="root"></param>
     /// <param name="fileName"></param>
     private static void UpgradeToVersion214(JObject root, string fileName)
     {
+
+
         foreach(JObject supplement in JsonUtilities.ChildrenOfType(root, "Supplement"))
         {
             var stores = supplement["Stores"];
-            foreach(JObject store in stores.Cast<JObject>())
+            if (stores != null)
             {
-                var newChildStore = new JObject
+                foreach(JObject store in stores.Cast<JObject>())
                 {
-                    ["$type"] = store["$type"],
-                    ["Name"] = store["Name"],
-                    ["Stored"] = store["Stored"],
-                    ["DMContent"] = store["DMContent"],
-                    ["DMD"] = store["DMD"],
-                    ["MEContent"] = store["MEContent"],
-                    ["CPConc"] = store["CPConc"],
-                    ["ProtDg"] = store["ProtDg"],
-                    ["PConc"] = store["PConc"],
-                    ["SConc"] = store["SConc"],
-                    ["EEConc"] = store["EEConc"],
-                    ["ADIP2CP"] = store["ADIP2CP"],
-                    ["AshAlk"] = store["AshAlk"],
-                    ["MaxPassage"] = store["MaxPassage"]
-                };
-                JObject supplementStoreParent = JsonUtilities.Parent(store) as JObject;
-                JsonUtilities.AddChild(supplementStoreParent, newChildStore);        
+                    var newChildStore = new JObject
+                    {
+                        ["$type"] = store["$type"],
+                        ["Name"] = store["Name"],
+                        ["Stored"] = store["Stored"],
+                        ["DMContent"] = store["DMContent"],
+                        ["DMD"] = store["DMD"],
+                        ["MEContent"] = store["MEContent"],
+                        ["CPConc"] = store["CPConc"],
+                        ["ProtDg"] = store["ProtDg"],
+                        ["PConc"] = store["PConc"],
+                        ["SConc"] = store["SConc"],
+                        ["EEConc"] = store["EEConc"],
+                        ["ADIP2CP"] = store["ADIP2CP"],
+                        ["AshAlk"] = store["AshAlk"],
+                        ["MaxPassage"] = store["MaxPassage"]
+                    };
+                    JObject supplementStoreParent = JsonUtilities.Parent(store) as JObject;
+                    JsonUtilities.AddChild(supplementStoreParent, newChildStore);        
+                }
+                supplement.Remove("Stores");                
             }
-            supplement.Remove("Stores");
+            
         }
 
         // Update manager script lines.
         foreach (var manager in JsonUtilities.ChildManagers(root))
         {
-            manager.Replace("supplement.Stores", "supplement.Children");
-            manager.Replace("supplement.Stores.Sum(store => store.Stored)", "supplement.GetTotalAmountInStore()");
+            manager.Replace("supplement.Stores.Sum(supp => supp.Stored)", "supplement.GetTotalAmountInStore()");
+            manager.Replace("supplement.Stores[1]", "supplement.GetSupplementStoreByIndex(1)");
+            manager.Replace("supplement.Stores[2]", "supplement.GetSupplementStoreByIndex(2)");
+            manager.Replace("supplement.Stores[2 - 1]", "supplement.GetSupplementStoreByIndex(2 - 1)");
             manager.Save();
+        }
+
+        foreach (var report in JsonUtilities.ChildrenOfType(root, "Report"))
+        {
+            JsonUtilities.SearchReplaceReportVariableNames(report, "[Supplement].stores[2].Stored as SupplementStored // (kg)", "[Supplement].Children[2].Stored as SupplementStored // (kg)", caseSensitive: false);
         }
     }
 

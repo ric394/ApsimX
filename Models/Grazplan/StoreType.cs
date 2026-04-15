@@ -19,15 +19,18 @@ namespace Models.GrazPlan
         /// <summary>Structure instance supplied by APSIM.core.</summary>
         [field: NonSerialized]
         public IStructure Structure { private get; set; }
-        
-        /// <summary>Gets or sets the amount of supplement.</summary>
-        [Description("Amount of supplement (kg)")]
-        [Units("kg")]
-        public double Stored { get; set; }
 
         /// <summary>Gets a value indicating whether this is a roughage.</summary>
         [Description("Is this a roughage?")]
+        [Display(Type = DisplayType.DropDown, Values = "GetIsRoughageValues")]
+        [Separator("Roughage Options")]
         public bool IsRoughage { get; set; }
+
+        /// <summary>Gets or sets the amount of supplement.</summary>
+        [Description("Amount of supplement (kg)")]
+        [Units("kg")]
+        [Separator("General Supplement Options")]
+        public double Stored { get; set; }
 
         /// <summary>Gets the dry matter content (0-1).</summary>
         [Description("Dry matter content (0-1)")]
@@ -73,8 +76,26 @@ namespace Models.GrazPlan
 
         /// <summary>Gets the maximum passage rate (0-1).</summary>
         [Description("Maximum passage rate (0-1)")]
-
         public double MaxPassage { get; set; }
+
+        /// <summary>
+        /// Gets a value indicating whether this is a roughage.
+        /// </summary>
+        /// <returns></returns>
+        public string[] GetIsRoughageValues()
+        {
+            return new string[] { bool.FalseString, bool.TrueString };
+        }
+
+        /// <summary>/ Called when the model is created. /</summary>
+        public override void OnCreated()
+        {
+            base.OnCreated();
+            if(Node != null && Node.Parent != null)
+                (Node.Parent.Model as Supplement)?.AddToStore(this);
+        }
+
+        
 
     }
 }
