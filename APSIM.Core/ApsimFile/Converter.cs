@@ -7545,7 +7545,14 @@ internal class Converter
             }
             supplement.Remove("Stores");
         }
-        
+
+        // Update manager script lines.
+        foreach (var manager in JsonUtilities.ChildManagers(root))
+        {
+            manager.Replace("supplement.Stores", "supplement.Children");
+            manager.Replace("supplement.Stores.Sum(store => store.Stored)", "supplement.GetTotalAmountInStore()");
+            manager.Save();
+        }
     }
 
 
