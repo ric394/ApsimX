@@ -354,7 +354,17 @@
               "Units": "g/tree",
               "Name": "InitialWt",
               "ResourceName": null,
-              "Children": [],
+              "Children": [
+                {
+                  "$type": "Models.Memo, Models",
+                  "Text": "\nSTRUM calculates this parameter value during run-time when the crop is established from parameter values set in the relevent STRUMtree object\n",
+                  "Name": "Param value set at establishment",
+                  "ResourceName": null,
+                  "Children": [],
+                  "Enabled": true,
+                  "ReadOnly": false
+                }
+              ],
               "Enabled": true,
               "ReadOnly": false
             },
@@ -1484,7 +1494,17 @@
               "Units": "g/tree",
               "Name": "InitialWt",
               "ResourceName": null,
-              "Children": [],
+              "Children": [
+                {
+                  "$type": "Models.Memo, Models",
+                  "Text": "\nSTRUM calculates this parameter value during run-time when the crop is established from parameter values set in the relevent STRUMtree object\n",
+                  "Name": "Param value set at establishment",
+                  "ResourceName": null,
+                  "Children": [],
+                  "Enabled": true,
+                  "ReadOnly": false
+                }
+              ],
               "Enabled": true,
               "ReadOnly": false
             },
@@ -3099,7 +3119,17 @@
               "Units": "g/tree",
               "Name": "InitialWt",
               "ResourceName": null,
-              "Children": [],
+              "Children": [
+                {
+                  "$type": "Models.Memo, Models",
+                  "Text": "\nSTRUM calculates this parameter value during run-time when the crop is established from parameter values set in the relevent STRUMtree object\n",
+                  "Name": "Param value set at establishment",
+                  "ResourceName": null,
+                  "Children": [],
+                  "Enabled": true,
+                  "ReadOnly": false
+                }
+              ],
               "Enabled": true,
               "ReadOnly": false
             },
@@ -3109,7 +3139,17 @@
               "Units": "g/tree",
               "Name": "MatureWt",
               "ResourceName": null,
-              "Children": [],
+              "Children": [
+                {
+                  "$type": "Models.Memo, Models",
+                  "Text": "\nSTRUM calculates this parameter value during run-time when the crop is established from parameter values set in the relevent STRUMtree object\n",
+                  "Name": "Param value set at establishment",
+                  "ResourceName": null,
+                  "Children": [],
+                  "Enabled": true,
+                  "ReadOnly": false
+                }
+              ],
               "Enabled": true,
               "ReadOnly": false
             },
@@ -3295,8 +3335,7 @@
                       "ResourceName": null,
                       "Children": [
                         {
-                          "$type": "Models.Functions.VariableReference, Models",
-                          "VariableName": "[STRUM].Wood.TotalCarbonDemand",
+                          "$type": "Models.PMF.DeficitDemandFunction, Models",
                           "Name": "Structural",
                           "ResourceName": null,
                           "Children": [],
@@ -3318,9 +3357,7 @@
                       "ReadOnly": false
                     },
                     {
-                      "$type": "Models.Functions.Constant, Models",
-                      "FixedValue": 0.0,
-                      "Units": null,
+                      "$type": "Models.PMF.DeficitDemandFunction, Models",
                       "Name": "Storage",
                       "ResourceName": null,
                       "Children": [],
@@ -3451,12 +3488,21 @@
                           "ReadOnly": false
                         },
                         {
-                          "$type": "Models.Functions.Constant, Models",
-                          "FixedValue": 0.0,
-                          "Units": null,
+                          "$type": "Models.PMF.MobilisationSupplyFunction, Models",
                           "Name": "Storage",
                           "ResourceName": null,
-                          "Children": [],
+                          "Children": [
+                            {
+                              "$type": "Models.Functions.Constant, Models",
+                              "FixedValue": 0.1,
+                              "Units": null,
+                              "Name": "Proportion",
+                              "ResourceName": null,
+                              "Children": [],
+                              "Enabled": true,
+                              "ReadOnly": false
+                            }
+                          ],
                           "Enabled": true,
                           "ReadOnly": false
                         }
@@ -3475,11 +3521,21 @@
                   "Children": [
                     {
                       "$type": "Models.Functions.Constant, Models",
-                      "FixedValue": 1.0,
-                      "Units": null,
+                      "FixedValue": 0.7,
+                      "Units": "g/g",
                       "Name": "Structural",
                       "ResourceName": null,
-                      "Children": [],
+                      "Children": [
+                        {
+                          "$type": "Models.Memo, Models",
+                          "Text": "\nSTRUM calculates this parameter value during run-time when the crop is established from parameter values set in the relevent STRUMtree object\n",
+                          "Name": "Param value set at establishment",
+                          "ResourceName": null,
+                          "Children": [],
+                          "Enabled": true,
+                          "ReadOnly": false
+                        }
+                      ],
                       "Enabled": true,
                       "ReadOnly": false
                     },
@@ -3495,11 +3551,21 @@
                     },
                     {
                       "$type": "Models.Functions.Constant, Models",
-                      "FixedValue": 0.0,
-                      "Units": null,
+                      "FixedValue": 0.3,
+                      "Units": "g/g",
                       "Name": "Storage",
                       "ResourceName": null,
-                      "Children": [],
+                      "Children": [
+                        {
+                          "$type": "Models.Memo, Models",
+                          "Text": "\nSTRUM calculates this parameter value during run-time when the crop is established from parameter values set in the relevent STRUMtree object\n",
+                          "Name": "Param value set at establishment",
+                          "ResourceName": null,
+                          "Children": [],
+                          "Enabled": true,
+                          "ReadOnly": false
+                        }
+                      ],
                       "Enabled": true,
                       "ReadOnly": false
                     }
@@ -5147,7 +5213,17 @@
               "Units": "g/tree",
               "Name": "InitialWt",
               "ResourceName": null,
-              "Children": [],
+              "Children": [
+                {
+                  "$type": "Models.Memo, Models",
+                  "Text": "\nSTRUM calculates this parameter value during run-time when the crop is established from parameter values set in the relevent STRUMtree object\n",
+                  "Name": "Param value set at establishment",
+                  "ResourceName": null,
+                  "Children": [],
+                  "Enabled": true,
+                  "ReadOnly": false
+                }
+              ],
               "Enabled": true,
               "ReadOnly": false
             },

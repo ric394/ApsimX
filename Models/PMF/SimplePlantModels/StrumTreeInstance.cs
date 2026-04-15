@@ -41,6 +41,7 @@ namespace Models.PMF.SimplePlantModels
         private double _DBHatMaturity = 20;
         private double _MaximumLeafBiomass = 500;
         private double _MaximumRootBiomass = 300;
+        private double _WoodStorageFraction = 0;
         private double _TypicalCanopyArea = 5.6;
         private double _MaxRD = 3000;
         private double _CanopyBaseHeight = 1000;
@@ -235,7 +236,9 @@ namespace Models.PMF.SimplePlantModels
         }
 
         /// <summary>Diameter at breast height for mature orchard tree (5-100 cm)</summary>
-        [Separator("Wood Growth. Diameter Above Brest height is for a mature orchard tree at a typical canopy area.  The Model calcualtes DBH based on these parameters adjusted to the canopy area specified")]
+        [Separator("Wood Growth.")]
+        [Separator("Diameter Above Brest height is for a mature orchard tree of the specified canopy area.")]
+        [Separator("The Model uses these parameters to calcualte DBH based on the canopy area modeled for this simulation")]
         [Description("Diameter at breast height (5-100 cm) for tree of canopy area specified below")]
         [Units("cm")]
         [Bounds(Lower = 5, Upper = 100)]
@@ -263,6 +266,16 @@ namespace Models.PMF.SimplePlantModels
         {
             get { return _WoodBulkDensity; }
             set { _WoodBulkDensity = constrain(value, 400, 1600); }
+        }
+
+        /// <summary>Carbohydrate storage capacity of wood (0 - 0.5 g/g)</summary>
+        [Description("Carbohydrate storage capacity of wood (0 - 0.5 g/g)")]
+        [Units("g/g")]
+        [Bounds(Lower = 0, Upper = 0.5)]
+        public double WoodStorageFraction
+        {
+            get { return _WoodStorageFraction; }
+            set { _WoodStorageFraction = constrain(value, 0, 0.5); }
         }
 
         /// <summary>Leaf mass (g/m2 of canopy)</summary>
@@ -373,8 +386,8 @@ namespace Models.PMF.SimplePlantModels
         }
 
         /// <summary>Dates for summer pruning</summary>
-        [Separator("Pruning.  Proportion of biomass removed from leaf and wood determined from dimensions above." +
-            "  Winter pruning occurs on EndLeafFallDate.  Picking occurs on the date maximum fruit size is reached")]
+        [Separator("Pruning.  Proportion of biomass removed from leaf and wood determined from dimensions above.")]
+        [Separator("Winter pruning occurs on EndLeafFallDate.  Picking occurs on the date maximum fruit size is reached")]
         [Description("Dates for summer pruning (coma seperated, dd-mmm for annual events or dd-mmm-yyyy for specific dates)")]
         public string[] SummerPruneDates { get; set; }
 
@@ -477,7 +490,7 @@ namespace Models.PMF.SimplePlantModels
         }
 
         /// <summary>Maximum cover of tree canopy (0.01-0.98).  This is the fraction of radiation that the tree canopy intercepts within its canopy area, not for the entire zone.</summary>
-        [Description("Maximum cover of tree canopy (0.01-0.98).  This is the fraction of radiation that the tree canopy intercepts within its canopy area, not for the entire zone.")]
+        [Description("Maximum fractional radiation interception of tree canopy (0.01-0.98).  For the canopy area, not the entire zone.")]
         [Bounds(Lower = 0.01, Upper = 0.98)]
         [Units("0-1")]
         public double MaxCover
@@ -730,6 +743,8 @@ namespace Models.PMF.SimplePlantModels
             {"WoodWtAtMaturity","[STRUM].Wood.MatureWt.FixedValue = " },
             {"LeafWtAtMaturity","[STRUM].Leaf.TotalCarbonDemand.TotalDMDemand.SizeDemand.SizeDemand.SizeDemand.TargetSize.gPerM2.FixedValue = " },
             {"RootWtAtMaturity","[STRUM].Root.TotalCarbonDemand.TotalDMDemand.SizeDemand.SizeDemand.SizeDemand.TargetSize.gPerM2.FixedValue = " },
+            {"WoodStorageFraction", "[STRUM].Wood.Carbon.PoolFractions.Storage.FixedValue = " },
+            {"WoodStructuralFraction", "[STRUM].Wood.Carbon.PoolFractions.Structural.FixedValue = " },
             {"YearsToMaxRD","[STRUM].Root.Network.RootFrontVelocity.RootGrowthDuration.YearsToMaxDepth.FixedValue = " },
             {"Number","[STRUM].Fruit.Number.RetainedPostThinning.FixedValue = " },
             {"FruitDensity","[STRUM].Fruit.Density.FixedValue = " },
@@ -900,6 +915,8 @@ namespace Models.PMF.SimplePlantModels
             treeParams["WoodWtAtMaturity"] += (woodMassAtMaxDimension * 1000).ToString();
             treeParams["LeafWtAtMaturity"] += MaximumLeafBiomass.ToString();
             treeParams["RootWtAtMaturity"] += MaximumRootBiomass.ToString();
+            treeParams["WoodStorageFraction"] += WoodStorageFraction.ToString();
+            treeParams["WoodStructuralFraction"] += (1-WoodStorageFraction).ToString();
             treeParams["YearsToMaxRD"] += YearsToMaxDimension.ToString();
             treeParams["Number"] += (Number*TreeCanopyArea).ToString();
             treeParams["FruitDensity"] += FruitDensity.ToString();
