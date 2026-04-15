@@ -32,7 +32,7 @@ namespace Models.PMF.SimplePlantModels
         /// <summary>Pruning Event.</summary>
         public event EventHandler<EventArgs> Pruning;
 
-        private double _RowSpacing = 6;
+        private double _RowSpacing = 6.0;
         private double _InterRowSpacing = 1.0;
         private double _AlleyZoneWidthFrac = 0.5;
         private int _AgeAtSimulationStart = 1;
@@ -43,13 +43,13 @@ namespace Models.PMF.SimplePlantModels
         private double _MaximumRootBiomass = 300;
         private double _WoodStorageFraction = 0;
         private double _TypicalCanopyArea = 5.6;
-        private double _MaxRD = 3000;
-        private double _CanopyBaseHeight = 1000;
-        private double _PrunedCanopyBaseHeight = 1000;
-        private double _MaxPrunedHeight = 3000;
-        private double _MaxHeight = 3500;
-        private double _MaxPrunedWidth = 2000;
-        private double _MaxWidth = 3000;
+        private double _MaxRD = 3.0;
+        private double _CanopyBaseHeight = 1.0;
+        private double _PrunedCanopyBaseHeight = 1.0;
+        private double _MaxPrunedHeight = 3.0;
+        private double _MaxHeight = 3.5;
+        private double _MaxPrunedWidth = 2.0;
+        private double _MaxWidth = 3.0;
         private double _RootNConc = 0.01;
         private double _LeafNConc = 0.03;
         private double _WoodNConc = 0.005;
@@ -198,7 +198,7 @@ namespace Models.PMF.SimplePlantModels
         {
             get
             {
-                return MatureWidth / 1000 * InterRowSpacing;
+                return MatureWidth * InterRowSpacing;
             }
         }
 
@@ -325,64 +325,64 @@ namespace Models.PMF.SimplePlantModels
         public TreeShape CrownShape { get; set; } = TreeShape.Round;
 
         
-        /// <summary>Height of the bottom of the canop (10-100000 mm)</summary>
-        [Description("Height of the mature canopy base before pruning (10-100000 mm)")]
-        [Bounds(Lower = 10, Upper = 100000)]
-        [Units("mm")]
+        /// <summary>Height of the bottom of the canop (0.1-100 m)</summary>
+        [Description("Height of the mature canopy base before pruning (.1-10 m)")]
+        [Bounds(Lower = 0.1, Upper = 100000)]
+        [Units("m")]
         public double MatureCanopyBaseHeight
         {
             get { return _CanopyBaseHeight; }
-            set { _CanopyBaseHeight = constrain(value, 10, 100000); }
+            set { _CanopyBaseHeight = constrain(value, .1, 100000); }
         }
 
-        /// <summary>Height of the bottom of the canop (10-100000 mm)</summary>
-        [Description("Height of the mature canopy base after pruning (10-100000 mm)")]
-        [Bounds(Lower = 10, Upper = 100000)]
-        [Units("mm")]
+        /// <summary>Height of the bottom of the canop (0.1-100 m)</summary>
+        [Description("Height of the mature canopy base after pruning (0.1-100 m)")]
+        [Bounds(Lower = 0.1, Upper = 100000)]
+        [Units("m")]
         public double MaturePrunedCanopyBaseHeight
         {
             get { return _PrunedCanopyBaseHeight; }
-            set { _PrunedCanopyBaseHeight = constrain(value, 10, 100000); }
+            set { _PrunedCanopyBaseHeight = constrain(value, 0.1, 100000); }
         }
 
-        /// <summary>Height of top of the canopy before pruning (10 - 200000mm)</summary>
-        [Description("Height of mature canopy before pruning (mm)")]
-        [Bounds(Lower = 10, Upper = 200000)]
-        [Units("mm")]
+        /// <summary>Height of top of the canopy before pruning (0.1- 200 m)</summary>
+        [Description("Height of mature canopy before pruning (0.1-200 m)")]
+        [Bounds(Lower = 0.1, Upper = 200000)]
+        [Units("m")]
         public double MatureHeight
         {
             get { return _MaxHeight; }
-            set { _MaxHeight = constrain(value, 10, 200000); }
+            set { _MaxHeight = constrain(value, 0.1, 200000); }
         }
 
-        /// <summary>Height of top of the canopy after pruning (50 - 200000mm)</summary>
-        [Description("Height of mature canopy after pruning (50 - 200000mm)")]
-        [Bounds(Lower = 50, Upper = 200000)]
-        [Units("mm")]
+        /// <summary>Height of top of the canopy after pruning (0.5 - 200 m)</summary>
+        [Description("Height of mature canopy after pruning (0.5 - 200 m)")]
+        [Bounds(Lower = 0.5, Upper = 200000)]
+        [Units("m")]
         public double MaturePrunedHeight
         {
             get { return _MaxPrunedHeight; }
-            set { _MaxPrunedHeight = constrain(value, 50, 200000); }
+            set { _MaxPrunedHeight = constrain(value, 0.5, 200000); }
         }
 
         /// <summary>Width of canopy before pruning (10-100000 mm)</summary>
-        [Description("Width of mature canopy before pruning (10-100000 mm)")]
-        [Bounds(Lower = 10, Upper = 100000)]
-        [Units("mm")]
+        [Description("Width of mature canopy before pruning (0.1-100 m)")]
+        [Bounds(Lower = 0.1, Upper = 100000)]
+        [Units("m")]
         public double MatureWidth
         {
             get { return _MaxWidth; }
-            set { _MaxWidth = constrain(value, 10, 100000); }
+            set { _MaxWidth = constrain(value, 0.1, 100000); }
         }
 
-        /// <summary>Width of canopy after pruning (10-100000mm)</summary>
-        [Description("Width of mature canopy after pruning  (10-100000mm)")]
-        [Bounds(Lower = 10, Upper = 100000)]
-        [Units("mm")]
+        /// <summary>Width of canopy after pruning (0.1-100 m)</summary>
+        [Description("Width of mature canopy after pruning  (0.1-100 m)")]
+        [Bounds(Lower = 0.1, Upper = 100000)]
+        [Units("m")]
         public double MaturePrunedWidth
         {
             get { return _MaxPrunedWidth; }
-            set { _MaxPrunedWidth = constrain(value, 10, 100000); }
+            set { _MaxPrunedWidth = constrain(value, 0.1, 100000); }
         }
 
         /// <summary>Dates for summer pruning</summary>
@@ -459,14 +459,14 @@ namespace Models.PMF.SimplePlantModels
         [Description("Grow roots into Alley zone (yes or no)")]
         public bool GRINZ { get; set; }
 
-        /// <summary>Root depth at harvest (300 - 20000 mm)</summary>
-        [Description("Root depth when mature (300 - 20000 mm)")]
-        [Bounds(Lower = 300, Upper = 20000)]
-        [Units("mm")]
+        /// <summary>Root depth at harvest (0.3 - 20 m)</summary>
+        [Description("Root depth when mature (0.3 - 20 m)")]
+        [Bounds(Lower = 0.3, Upper = 20000)]
+        [Units("m")]
         public double MaxRD
         {
             get { return _MaxRD; }
-            set { _MaxRD = constrain(value, 300, 20000); }
+            set { _MaxRD = constrain(value, 0.3, 20000); }
         }
 
         /// <summary>Extinction coefficient (0.1-1)</summary>
@@ -792,7 +792,7 @@ namespace Models.PMF.SimplePlantModels
             for (int d = 0; d < soilCrop.KL.Length; d++)
                 soilCrop.KL[d] = 1.0;
 
-            double rootDepth = Math.Min(MaxRD, soilDepthMax);
+            double rootDepth = Math.Min(MaxRD*1000, soilDepthMax);
             if (GRINZ)
             {  //Must add root zone prior to sowing the crop.  For some reason they (silently) dont add if you try to do so after the crop is established
                 List<Zone> zones = Structure.FindChildren<Zone>(relativeTo: simulation).ToList();
@@ -826,7 +826,7 @@ namespace Models.PMF.SimplePlantModels
             }
 
             string cropName = this.Name;
-            double depth = Math.Min(this.MaxRD * this.AgeAtSimulationStart / this.YearsToMaxDimension, rootDepth);
+            double depth = Math.Min(this.MaxRD*1000 * this.AgeAtSimulationStart / this.YearsToMaxDimension, rootDepth);
             double population = TreePopulation;
             double rowWidth = RowSpacing;
 
@@ -850,11 +850,11 @@ namespace Models.PMF.SimplePlantModels
             double areaWidth = 0;
             woodMassAtMaxDimension = StrumBiomass.EstimateMatureWoodMassKg(
                                                                                     crownShape: CrownShape,
-                                                                                    heightBottomPrePrune_m: MatureCanopyBaseHeight/1000,  // ground → crown bottom, before prune
-                                                                                    heightTopPrePrune_m: MatureHeight / 1000,     // crown top (mature height) before prune
-                                                                                    heightTopPostPrune_m: MaturePrunedHeight / 1000,    // crown top after prune (topping allowed)
-                                                                                    widthPrePrune_m: MatureWidth / 1000,         // canopy width before prune
-                                                                                    widthPostPrune_m: MaturePrunedWidth / 1000,        // canopy width after prune
+                                                                                    heightBottomPrePrune_m: MatureCanopyBaseHeight,  // ground → crown bottom, before prune
+                                                                                    heightTopPrePrune_m: MatureHeight,     // crown top (mature height) before prune
+                                                                                    heightTopPostPrune_m: MaturePrunedHeight,    // crown top after prune (topping allowed)
+                                                                                    widthPrePrune_m: MatureWidth,         // canopy width before prune
+                                                                                    widthPostPrune_m: MaturePrunedWidth,        // canopy width after prune
                                                                                     inRowSpacing_m: InterRowSpacing,          // per-tree length along row (spacing within row)
                                                                                     rowSpacing_m: RowSpacing,               // optional: distance between rows
                                                                                     woodDensity_kg_m3: WoodBulkDensity,       // oven-dry density [kg m^-3]
@@ -884,13 +884,13 @@ namespace Models.PMF.SimplePlantModels
             treeParams["FullCanopy"] += StartLeafFallDate;
             treeParams["LeafFall"] += EndLeafFallDate;
             treeParams["WinterDormant"] += WinterSolsticeDate;
-            treeParams["MaxRootDepth"] += MaxRD.ToString();
-            treeParams["MaturePrunedCanopyBaseHeight"] += MaturePrunedCanopyBaseHeight.ToString();
-            treeParams["BaseHeightSeasonalIncrement"] += (MaturePrunedCanopyBaseHeight - MatureCanopyBaseHeight).ToString();
-            treeParams["MaturePrunedHeight"] += MaturePrunedHeight.ToString();
-            treeParams["SeasonalHeightIncrement"] += (MatureHeight - MaturePrunedHeight).ToString();
-            treeParams["MaturePrunedWidth"] += MaturePrunedWidth.ToString();
-            treeParams["SeasonalWidthIncrement"] += (MatureWidth - MaturePrunedWidth).ToString();
+            treeParams["MaxRootDepth"] += (1000 * MaxRD).ToString();
+            treeParams["MaturePrunedCanopyBaseHeight"] += (1000 * MaturePrunedCanopyBaseHeight).ToString();
+            treeParams["BaseHeightSeasonalIncrement"] += (1000 * (MaturePrunedCanopyBaseHeight - MatureCanopyBaseHeight)).ToString();
+            treeParams["MaturePrunedHeight"] += (1000 * MaturePrunedHeight).ToString();
+            treeParams["SeasonalHeightIncrement"] += (1000 * (MatureHeight - MaturePrunedHeight)).ToString();
+            treeParams["MaturePrunedWidth"] += (1000 * MaturePrunedWidth).ToString();
+            treeParams["SeasonalWidthIncrement"] += (1000 * (MatureWidth - MaturePrunedWidth)).ToString();
             treeParams["ProductNConc"] += FruitNConc.ToString();
             treeParams["ResidueNConc"] += LeafNConc.ToString();
             treeParams["RootNConc"] += RootNConc.ToString();
@@ -951,12 +951,12 @@ namespace Models.PMF.SimplePlantModels
             
             
             pruningFractionWood = StrumBiomass.StrumPruningFraction(crownShape: CrownShape,
-                                                                heightBottomPrePrune_m: MatureCanopyBaseHeight / 1000,  // ground → crown bottom, before prune
-                                                                heightBottomPostPrune_m: MaturePrunedCanopyBaseHeight / 1000,
-                                                                heightTopPrePrune_m: MatureHeight / 1000,     // crown top (mature height) before prune
-                                                                heightTopPostPrune_m: MaturePrunedHeight / 1000,    // crown top after prune (topping allowed)
-                                                                widthPrePrune_m: MatureWidth / 1000,         // canopy width before prune
-                                                                widthPostPrune_m: MaturePrunedWidth / 1000,        // canopy width after prune
+                                                                heightBottomPrePrune_m: MatureCanopyBaseHeight,  // ground → crown bottom, before prune
+                                                                heightBottomPostPrune_m: MaturePrunedCanopyBaseHeight,
+                                                                heightTopPrePrune_m: MatureHeight,     // crown top (mature height) before prune
+                                                                heightTopPostPrune_m: MaturePrunedHeight,    // crown top after prune (topping allowed)
+                                                                widthPrePrune_m: MatureWidth,         // canopy width before prune
+                                                                widthPostPrune_m: MaturePrunedWidth,        // canopy width after prune
                                                                 interRowSpacing_m: InterRowSpacing,          // per-tree length along row (spacing within row)
                                                                 rowSpacing_m: RowSpacing,               // optional: distance between rows
                                                                 matureDbh_cm: DBHatMaturity,
@@ -967,7 +967,7 @@ namespace Models.PMF.SimplePlantModels
             treeParams["InitialFruitWt"] += (0).ToString();
             double relativeInitialSize = Math.Min(1,(double)AgeAtSimulationStart / (double)YearsToMaxDimension);
             treeParams["InitialWoodWt"] += relativeInitialSize * woodMassAtMaxDimension * 1000 * (1 - pruningFractionWood);
-            double PurnedCanopyArea = Math.Min(MaturePrunedWidth/1000, areaWidth) * Math.Min(MaturePrunedWidth/1000, InterRowSpacing);
+            double PurnedCanopyArea = Math.Min(MaturePrunedWidth, areaWidth) * Math.Min(MaturePrunedWidth, InterRowSpacing);
             double InitialCanopyArea = PurnedCanopyArea * relativeInitialSize;
             treeParams["InitialLeafWt"] += (InitialCanopyArea * MaximumLeafBiomass * (Decidious ? 0 : 1)).ToString();
             treeParams["InitialRootWt"] += (InitialCanopyArea * MaximumRootBiomass * (Decidious ? 0.5 : 1)).ToString();

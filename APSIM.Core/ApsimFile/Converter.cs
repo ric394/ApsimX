@@ -9,6 +9,7 @@ using System.Xml;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Text.Json.Nodes;
 
 namespace APSIM.Core;
 
@@ -7592,7 +7593,60 @@ internal class Converter
                     manager.Save();
             }
         }
-    }
 
+        List<string> toRescale = new List<string> { "MaxRD",
+                                                    "MatureCanopyBaseHeight",
+                                                    "MaturePrunedCanopyBaseHeight",
+                                                    "MatureHeight",
+                                                    "MaturePrunedHeight",
+                                                    "MatureWidth",
+                                                    "MaturePrunedWidth" };
+
+        // 6. convert canopy and root dimensions from mm to m
+        foreach (var ScrumTreeInstance in JsonUtilities.ChildrenOfType(root, "StrumTreeInstance"))
+        {
+            foreach (string param in toRescale)
+            {
+                if ((double)ScrumTreeInstance[param] > 100)
+                    ScrumTreeInstance[param] = (double)ScrumTreeInstance[param] / 1000;
+            }
+        }
+
+        string paramGroup = string.Join("|", toRescale.Select(Regex.Escape));
+        var regex = new Regex(
+            $@"^(?<prefix>\[Row\]\.[^\.]+\.({paramGroup})\s*=\s*)" +
+            @"(?<value>-?\d+(\.\d+)?)",
+            RegexOptions.Compiled);
+        foreach (var CompositeFactor in JsonUtilities.ChildrenOfType(root, "CompositeFactor"))
+        {
+
+            JArray specs = CompositeFactor["Specifications"] as JArray;
+            if (specs == null || specs.Count == 0)
+                continue;
+
+            for (int i = 0; i < specs.Count; i++)
+            {
+                if (specs[i].Type != JTokenType.String)
+                    continue;
+
+                string specText = specs[i].Value<string>();
+                specs[i] = regex.Replace(specText, match =>
+                {
+                    double value = double.Parse(
+                        match.Groups["value"].Value,
+                        CultureInfo.InvariantCulture);
+
+                    // Same guard as StrumTreeInstance
+                    if (value <= 100)
+                        return match.Value;
+
+                    double scaled = value / 1000.0;
+
+                    return match.Groups["prefix"].Value +
+                           scaled.ToString("G", CultureInfo.InvariantCulture);
+                });
+            }
+        }
+    }
 
 }
