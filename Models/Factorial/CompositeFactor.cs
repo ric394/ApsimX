@@ -123,7 +123,16 @@ namespace Models.Factorial
         {
             if (value is IModel model)
             {
-                _models = new List<IModel>() {model};
+                if (model is CompositeFactor factor)
+                {
+                    _models = new List<IModel>();
+                    foreach(IModel child in factor.Children)
+                        _models.Add(child);
+                }
+                else
+                {
+                    _models = new List<IModel>() {model};
+                }
                 Name = model.Name;
                 Specifications = new List<string>() {$"{path}"};
             }
