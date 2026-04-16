@@ -186,7 +186,8 @@ namespace Models.Factorial
                         modelsToSearch = _models;
 
                     //Work out if any of the replacing models have the same type or share a non-imodel interface
-                    Type[] interfacesOfModel = typeof(Model).GetInterfaces();
+                    List<Type> interfacesOfModel = typeof(Model).GetInterfaces().ToList();
+                    interfacesOfModel.Add(typeof(IStructureDependency));
                     IEnumerable<Type> interfacesToReplace = modelToReplace.GetType().GetInterfaces().Except(interfacesOfModel);
                     List<IModel> possibleMatches = new List<IModel>();
                     foreach(IModel model in modelsToSearch)
@@ -216,7 +217,7 @@ namespace Models.Factorial
                     //if multiple, try and match by name as well
                     else if (possibleMatches.Count() > 1) 
                     {
-                        IModel match = possibleMatches.FirstOrDefault(m => m.Name == modelToReplace.Name);
+                        IModel match = possibleMatches.FirstOrDefault(m => m.Name.ToLower() == modelToReplace.Name.ToLower());
                         if (match == null) //if multiple matches, but none match on name, throw
                             throw new NullReferenceException($"Error in composite factor {Name}: Unable to parse factor specification {specification}: Multiple children of type {modelToReplace.GetType().Name} but none share a name with the model they replace. Ambiguous replacement has been prevented.");
                         else
