@@ -164,7 +164,7 @@ namespace Models.Factorial
             foreach(string specification in specifications)
             {
                 string path = specification;
-                object value;
+                object value = null;
                 if (path.Contains("="))
                 {
                     value = StringUtilities.SplitOffAfterDelimiter(ref path, "=").Trim();
@@ -184,14 +184,44 @@ namespace Models.Factorial
                     IEnumerable<IModel> modelsToSearch = Node.FindChildren<IModel>();
                     if (modelsToSearch.Count() == 0)
                         modelsToSearch = _models;
-                    // Now find a child of that type.
-                    IEnumerable<IModel> possibleMatches = modelsToSearch.Where(c => modelToReplace.GetType().IsAssignableFrom(c.GetType()));
-                    if (possibleMatches.Count() > 1)
-                        value = possibleMatches.FirstOrDefault(m => m.Name == modelToReplace.Name);
-                    else if (possibleMatches.Count() == 1)
-                        value = possibleMatches.First();
-                    else
+
+                    //Work out if any of the replacing models have the same type or share a non-imodel interface
+                    Type[] interfacesOfModel = typeof(Model).GetInterfaces();
+                    IEnumerable<Type> interfacesToReplace = modelToReplace.GetType().GetInterfaces().Except(interfacesOfModel);
+                    List<IModel> possibleMatches = new List<IModel>();
+                    foreach(IModel model in modelsToSearch)
+                    {
+                        if (model.GetType() == modelToReplace.GetType())
+                            possibleMatches.Add(model);
+                        else if (modelToReplace.GetType().IsAssignableFrom(model.GetType()))
+                            possibleMatches.Add(model);
+                        else
+                        {
+                            IEnumerable<Type> interfacesOfSearch = model.GetType().GetInterfaces().Except(interfacesOfModel);
+                            if (interfacesToReplace.Intersect(interfacesOfSearch).Any())
+                                possibleMatches.Add(model);
+                        }
+                    }
+
+                    //if no matches, throw
+                    if (possibleMatches.Count() == 0)
+                    {
                         throw new NullReferenceException($"Error in composite factor {Name}: Unable to parse factor specification {specification}: No children are of type {modelToReplace.GetType().Name}, so model {modelToReplace.Name} cannot be overriden.");
+                    }
+                    //If only one match, return that
+                    else if (possibleMatches.Count() == 1)
+                    {
+                        value = possibleMatches.First();
+                    }
+                    //if multiple, try and match by name as well
+                    else if (possibleMatches.Count() > 1) 
+                    {
+                        IModel match = possibleMatches.FirstOrDefault(m => m.Name == modelToReplace.Name);
+                        if (match == null) //if multiple matches, but none match on name, throw
+                            throw new NullReferenceException($"Error in composite factor {Name}: Unable to parse factor specification {specification}: Multiple children of type {modelToReplace.GetType().Name} but none share a name with the model they replace. Ambiguous replacement has been prevented.");
+                        else
+                            value = match;
+                    }
 
                     pairs.Add(new CompositeFactorPair(path.Trim(), value, typeof(IModel)));
                     models.Add(value as IModel);
