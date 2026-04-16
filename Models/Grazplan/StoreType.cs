@@ -13,6 +13,7 @@ namespace Models.GrazPlan
     [ViewName("UserInterface.Views.PropertyView")]
     [PresenterName("UserInterface.Presenters.PropertyPresenter")]
     [Serializable]
+    [ValidParent(ParentType = typeof(Supplement))]
     public class StoreType : Model, ISuppInfo
     {
 
@@ -87,15 +88,12 @@ namespace Models.GrazPlan
             return new string[] { bool.FalseString, bool.TrueString };
         }
 
-        /// <summary>/ Called when the model is created. /</summary>
+        /// <summary>Called when the model is created.</summary>
         public override void OnCreated()
         {
             base.OnCreated();
             if(Node != null && Node.Parent != null)
                 (Node.Parent.Model as Supplement)?.AddToStore(this);
         }
-
-        
-
     }
 }

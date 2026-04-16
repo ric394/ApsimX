@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using APSIM.Core;
-using DocumentFormat.OpenXml.Office2010.CustomUI;
 using Models.Core;
 using Newtonsoft.Json;
 
@@ -376,7 +375,14 @@ namespace Models.GrazPlan
         /// <returns>The supplement store with the specified index, or null if not found.</returns>
         public StoreType GetSupplementStoreByIndex(int index)
         {
-            return Children.OfType<StoreType>().ElementAtOrDefault(index);
+            var store = Children.OfType<StoreType>().ElementAtOrDefault(index);
+            if (store == null)
+                throw new Exception("Error finding supplement store with index " + index);
+            StoreType modelStore = this[store.Name];
+            if (modelStore != null)
+                return modelStore;
+            else
+                throw new Exception("Error finding supplement store with index " + index);
         }
 
 
@@ -688,7 +694,21 @@ namespace Models.GrazPlan
                 AshAlk = 0.0,
                 MaxPassage = 0.0
             };
-            Children.Add(fodder);
+            Children.Insert(0, fodder);
+        }
+
+        /// <summary>
+        /// Called when the model is serialised to the .apsimx file. 
+        /// We use this event to ensure that the fodder store is not serialised to the .apsimx file, 
+        /// as it is only used as a temporary store for conserved forage and should not be user-facing.
+        /// </summary>
+        public override void OnSerialising()
+        {
+            // Ensure that the fodder store is not serialised to the .apsimx file. 
+            // It is only used as a temporary store for conserved forage and should not be user-facing.
+            StoreType fodderStore = GetSupplementStoreByName("fodder");
+            if (fodderStore != null)
+                Children.Remove(fodderStore);
 
         }
     }

@@ -7528,29 +7528,35 @@ internal class Converter
             {
                 foreach(JObject store in stores.Cast<JObject>())
                 {
-                    var newChildStore = new JObject
+                    // Fodder StoreTypes have historically been a hidden StoreType property of Supplement.
+                    // Now that they are children and not in a Stores property we only want them to exist
+                    // in memory and not be serialised to the .apsimx file. 
+                    string fodderStoreTypeName = "fodder";
+                    if (!store["Name"].ToString().Equals(fodderStoreTypeName, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        ["$type"] = store["$type"],
-                        ["Name"] = store["Name"],
-                        ["Stored"] = store["Stored"],
-                        ["DMContent"] = store["DMContent"],
-                        ["DMD"] = store["DMD"],
-                        ["MEContent"] = store["MEContent"],
-                        ["CPConc"] = store["CPConc"],
-                        ["ProtDg"] = store["ProtDg"],
-                        ["PConc"] = store["PConc"],
-                        ["SConc"] = store["SConc"],
-                        ["EEConc"] = store["EEConc"],
-                        ["ADIP2CP"] = store["ADIP2CP"],
-                        ["AshAlk"] = store["AshAlk"],
-                        ["MaxPassage"] = store["MaxPassage"]
-                    };
-                    JObject supplementStoreParent = JsonUtilities.Parent(store) as JObject;
-                    JsonUtilities.AddChild(supplementStoreParent, newChildStore);        
+                        var newChildStore = new JObject
+                        {
+                            ["$type"] = store["$type"],
+                            ["Name"] = store["Name"],
+                            ["Stored"] = store["Stored"],
+                            ["DMContent"] = store["DMContent"],
+                            ["DMD"] = store["DMD"],
+                            ["MEContent"] = store["MEContent"],
+                            ["CPConc"] = store["CPConc"],
+                            ["ProtDg"] = store["ProtDg"],
+                            ["PConc"] = store["PConc"],
+                            ["SConc"] = store["SConc"],
+                            ["EEConc"] = store["EEConc"],
+                            ["ADIP2CP"] = store["ADIP2CP"],
+                            ["AshAlk"] = store["AshAlk"],
+                            ["MaxPassage"] = store["MaxPassage"]
+                        };
+                        JObject supplementStoreParent = JsonUtilities.Parent(store) as JObject;
+                        JsonUtilities.AddChild(supplementStoreParent, newChildStore);  
+                    }
                 }
                 supplement.Remove("Stores");                
             }
-            
         }
 
         // Update manager script lines.
@@ -7564,9 +7570,9 @@ internal class Converter
         }
 
         foreach (var report in JsonUtilities.ChildrenOfType(root, "Report"))
-        {
-            JsonUtilities.SearchReplaceReportVariableNames(report, "[Supplement].stores[2].Stored as SupplementStored // (kg)", "[Supplement].Children[2].Stored as SupplementStored // (kg)", caseSensitive: false);
-        }
+            JsonUtilities.SearchReplaceReportVariableNames(report, 
+                "[Supplement].stores[2].Stored as SupplementStored // (kg)", 
+                "[Supplement].Children[2].Stored as SupplementStored // (kg)", caseSensitive: false);
     }
 
 
