@@ -96,7 +96,7 @@ namespace Models.Factorial
                 }
             }
 
-            if (!(Parent is Factors))
+            if (Parent != null && !(Parent is Factors))
                 simulationDescription.Descriptors.Add(new SimulationDescription.Descriptor(Parent.Name, Name));
         }
 
