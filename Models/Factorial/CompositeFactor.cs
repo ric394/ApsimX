@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using APSIM.Core;
 using APSIM.Shared.Documentation.Extensions;
+using APSIM.Shared.Extensions.Collections;
 using APSIM.Shared.Utilities;
 using Models.Core;
 using Models.Core.Run;
@@ -21,8 +22,8 @@ namespace Models.Factorial
     [ValidParent(ParentType = typeof(Factor))]
     [ValidParent(ParentType = typeof(Permutation))]
     [Serializable]
-    [ViewName("UserInterface.Views.QuadView")]
-    [PresenterName("UserInterface.Presenters.QuadPresenter")]
+    [ViewName("UserInterface.Views.EditorView")]
+    [PresenterName("UserInterface.Presenters.CompositeFactorPresenter")]
     public class CompositeFactor : Model, IReferenceExternalFiles
     {
         /// <summary>
@@ -189,6 +190,7 @@ namespace Models.Factorial
                     List<Type> interfacesOfModel = typeof(Model).GetInterfaces().ToList();
                     interfacesOfModel.Add(typeof(IStructureDependency));
                     IEnumerable<Type> interfacesToReplace = modelToReplace.GetType().GetInterfaces().Except(interfacesOfModel);
+
                     List<IModel> possibleMatches = new List<IModel>();
                     foreach(IModel model in modelsToSearch)
                     {
@@ -199,6 +201,10 @@ namespace Models.Factorial
                         else
                         {
                             IEnumerable<Type> interfacesOfSearch = model.GetType().GetInterfaces().Except(interfacesOfModel);
+                            //if this is a manager script, also get the interfaces from the class defined in the script
+                            if (model is Manager manager)
+                                interfacesOfSearch = interfacesOfSearch.AppendMany(manager.Script.GetType().GetInterfaces().Except(interfacesOfModel));
+
                             if (interfacesToReplace.Intersect(interfacesOfSearch).Any())
                                 possibleMatches.Add(model);
                         }
