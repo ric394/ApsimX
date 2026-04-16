@@ -5,8 +5,6 @@ using Models.Functions;
 using APSIM.Shared.Utilities;
 using Models.Soils;
 using Models.WaterModel;
-using Models.Factorial;
-using APSIM.Core;
 
 namespace UserInterface.Presenters
 {
@@ -58,7 +56,7 @@ namespace UserInterface.Presenters
         public void Detach()
         {
             DisconnectEvents();
-            foreach (IPresenter presenter in presenters)
+            foreach (ISubPresenter presenter in presenters)
             {
                 if (presenter is GridPresenter grid)
                     grid.Detach();
