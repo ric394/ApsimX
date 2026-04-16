@@ -87,6 +87,11 @@ namespace UserInterface.Presenters
         {
             foreach (ISubPresenter presenter in presenters)
                 presenter.ConnectEvents();
+
+            foreach (ISubPresenter presenter in presenters)
+                if (presenter is GridPresenter grid)
+                    grid.CellChanged += OnCellChanged;
+
             explorerPresenter.CommandHistory.ModelChanged += OnModelChanged;
         }
 
@@ -95,6 +100,11 @@ namespace UserInterface.Presenters
         {
             foreach (ISubPresenter presenter in presenters)
                 presenter.DisconnectEvents();
+
+            foreach (ISubPresenter presenter in presenters)
+                if (presenter is GridPresenter grid)
+                    grid.CellChanged -= OnCellChanged;
+
             explorerPresenter.CommandHistory.ModelChanged -= OnModelChanged;
         }
 
@@ -106,6 +116,17 @@ namespace UserInterface.Presenters
         {
             model = changedModel as IModel;
             Refresh();
+        }
+
+        void OnCellChanged(Gtk.Sheet.IDataProvider dataProvider, int[] colIndices, int[] rowIndices, string[] values)
+        {
+            DisconnectEvents();
+
+            foreach (ISubPresenter presenter in presenters)
+                presenter.Refresh();
+            view.Refresh();
+
+            ConnectEvents();
         }
 
         /// <summary>
@@ -241,18 +262,6 @@ namespace UserInterface.Presenters
         {
             CreateLayoutGeneric();
             view.OverrideSlider(0.3);
-        }
-
-        /// <summary>
-        /// Create layout for a FactorsFromFile
-        /// </summary>
-        private void CreateLayoutFactorFromFile()
-        {
-            AddProperty(WidgetPosition.TopLeft);
-            AddGrid(WidgetPosition.BottomLeft);
-            AddText(WidgetPosition.TopRight, "Commands:");
-            AddCode(WidgetPosition.BottomRight);
-            view.OverrideSlider(0.6);
         }
     }
 }
