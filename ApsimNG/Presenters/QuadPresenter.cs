@@ -121,11 +121,8 @@ namespace UserInterface.Presenters
         void OnCellChanged(Gtk.Sheet.IDataProvider dataProvider, int[] colIndices, int[] rowIndices, string[] values)
         {
             DisconnectEvents();
-
             foreach (ISubPresenter presenter in presenters)
                 presenter.Refresh();
-            view.Refresh();
-
             ConnectEvents();
         }
 
