@@ -72,7 +72,7 @@ namespace Models.GrazPlan
     [PresenterName("UserInterface.Presenters.PropertyPresenter")]
     [ValidParent(ParentType = typeof(Simulation))]
     [ValidParent(ParentType = typeof(Zone))]
-    public class Supplement : Model, IStructureDependency
+    public partial class Supplement : Model, IStructureDependency
     {
         /// <summary>Structure instance supplied by APSIM.core.</summary>
         [field: NonSerialized]
@@ -386,7 +386,7 @@ namespace Models.GrazPlan
         /// <returns>The total amount of supplements in all stores.</returns>
         public double GetTotalAmountInStore()
         {
-            return Children.OfType<StoreType>().Sum(store => store.Stored);
+            return theModel.TotalAmount;
         }
 
         /// <summary>
@@ -667,43 +667,28 @@ namespace Models.GrazPlan
         }
 
 
-        /// <summary>
-        /// This class encapsulates an amount of feed of a particular type that will
-        /// be fed each day.
-        /// </summary>
-        [Serializable]
-        private class SupplementFeeding
+        /// <summary> Called when the supplement is created.</summary>
+        public override void OnCreated()
         {
-            private string supplement;
-            private double amount;
-            private string paddock;
-            private bool feedSuppFirst;
-
-            /// <summary>Constructor.</summary>
-            /// <param name="nam">Name of feed schedule.</param>
-            /// <param name="sup">The supplement.</param>
-            /// <param name="amt">The amount.</param>
-            /// <param name="pad">The paddock.</param>
-            /// <param name="feedSupFirst">Feed supplement before pasture. Bail feeding.</param>
-            public SupplementFeeding(string nam, string sup, double amt, string pad, bool feedSupFirst)
+            base.OnCreated();
+            StoreType fodder = new()
             {
-                Name = nam;
-                supplement = sup;
-                amount = amt;
-                paddock = pad;
-                feedSuppFirst = feedSupFirst;
-            }
-
-            /// <summary>Name of feeding.</summary>
-            public string Name { get; }
-
-            /// <summary>
-            /// Tell supplement to do a feed.
-            /// </summary>
-            public void Feed(Supplement supp)
-            {
-                supp.Feed(supplement, amount, paddock, feedSuppFirst);
-            }
+                Name = "fodder",
+                IsRoughage = true,
+                Stored = 0.0,
+                DMContent = 0.85,
+                DMD = 0.0,
+                MEContent = 0.0,
+                CPConc = 0.0,
+                ProtDg = 0.0,
+                PConc = 0.0,
+                SConc = 0.0,
+                EEConc = 0.0,
+                ADIP2CP = 0.0,
+                AshAlk = 0.0,
+                MaxPassage = 0.0
+            };
+            Children.Add(fodder);
 
         }
     }

@@ -26,7 +26,7 @@ namespace Models.GrazPlan
     /// supplement not named in grazSUPP will result in an wheat being used.
     /// </summary>
     [Serializable]
-    public class SupplementModel : SupplementLibrary
+    public partial class SupplementModel : SupplementLibrary
     {
         /// <summary>
         /// The default
@@ -488,33 +488,6 @@ namespace Models.GrazPlan
             }
             else
                 dest[destIdx].Amount = 0;
-        }
-
-        /// <summary>
-        /// Paddock information about the supplement fed
-        /// </summary>
-        [Serializable]
-        private class PaddockInfo
-        {
-            /// <summary>
-            /// The name
-            /// </summary>
-            public string Name;
-
-            /// <summary>
-            /// The padd identifier
-            /// </summary>
-            public int PaddId;
-
-            /// <summary>
-            /// The suppt fed
-            /// </summary>
-            public SupplementRation SupptFed;   // Entry N is the supplement fed out N days ago
-
-            /// <summary>
-            /// For bail feeding
-            /// </summary>
-            public bool FeedSuppFirst = false;
         }
     }
 }
