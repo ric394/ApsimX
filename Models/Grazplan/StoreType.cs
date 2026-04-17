@@ -72,11 +72,9 @@ namespace Models.GrazPlan
         public double ADIP2CP { get; set; }
 
         /// <summary>Gets the ash alkalinity (mol/kg DM).</summary>
-        [Description("Ash alkalinity (mol/kg DM)")]
         public double AshAlk { get; set; }
 
         /// <summary>Gets the maximum passage rate (0-1).</summary>
-        [Description("Maximum passage rate (0-1)")]
         public double MaxPassage { get; set; }
 
         /// <summary>
