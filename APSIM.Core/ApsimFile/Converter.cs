@@ -7563,16 +7563,8 @@ internal class Converter
         foreach (var manager in JsonUtilities.ChildManagers(root))
         {
             manager.Replace("supplement.Stores.Sum(supp => supp.Stored)", "supplement.GetTotalAmountInStore()");
-            manager.Replace("supplement.Stores[1]", "supplement.GetSupplementStoreByIndex(1)");
-            manager.Replace("supplement.Stores[2]", "supplement.GetSupplementStoreByIndex(2)");
-            manager.Replace("supplement.Stores[2 - 1]", "supplement.GetSupplementStoreByIndex(2 - 1)");
             manager.Save();
         }
-
-        foreach (var report in JsonUtilities.ChildrenOfType(root, "Report"))
-            JsonUtilities.SearchReplaceReportVariableNames(report, 
-                "[Supplement].stores[2].Stored as SupplementStored // (kg)", 
-                "[Supplement].Children[2].Stored as SupplementStored // (kg)", caseSensitive: false);
     }
 
 
