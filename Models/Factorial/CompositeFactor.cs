@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Text.Json.Serialization;
 using APSIM.Core;
 using APSIM.Shared.Extensions.Collections;
 using APSIM.Shared.Utilities;
@@ -21,9 +22,9 @@ namespace Models.Factorial
     [ValidParent(ParentType = typeof(Factor))]
     [ValidParent(ParentType = typeof(Permutation))]
     [Serializable]
-    [ViewName("UserInterface.Views.EditorView")]
-    [PresenterName("UserInterface.Presenters.CompositeFactorPresenter")]
-    public class CompositeFactor : Model, IReferenceExternalFiles
+    [ViewName("UserInterface.Views.QuadView")]
+    [PresenterName("UserInterface.Presenters.QuadPresenter")]
+    public class CompositeFactor : Model, IReferenceExternalFiles, ILineEditor
     {
         /// <summary>
         /// A list of models that have been passed into this composite factor 
@@ -32,13 +33,37 @@ namespace Models.Factorial
         private List<IModel> _models { get; set; }
 
         /// <summary>Gets or sets the specification to create overrides for a simulation.</summary>
-        public List<string> Specifications { get; set; }
+        public string[] Specifications { get; set; }
+
+        /// <summary>
+        /// This hold a list of additional Composite Factor variables that are 
+        /// stored in the datastore like a factor column. This allows them to 
+        /// used for graphing and filtering factors with complex composite 
+        /// factors.
+        /// </summary>
+        [Display(DisplayName = "Name")]
+        public string[] MetadataNames { get; set; }
+
+        /// <summary>
+        /// Values for the metadata names in MetadataNames
+        /// </summary>
+        [Display(DisplayName = "Value")]
+        public string[] MetadataValues { get; set; }
+
+        /// <summary>Property for the ILineEditor to change Specifications with</summary>
+        [JsonIgnore]
+        public IEnumerable<string> Lines { 
+            get { return Specifications; } 
+            set { Specifications = value.ToArray(); } 
+        }
 
         /// <summary>Parameterless constructor needed for serialisation</summary>
         public CompositeFactor()
         {
             _models = new List<IModel>();
-            Specifications = new List<string>();
+            MetadataNames = [];
+            MetadataValues = [];
+            Specifications = [];
         }
 
         /// <summary>Constructor</summary>
@@ -46,12 +71,16 @@ namespace Models.Factorial
         {
             _models = new List<IModel>();
             Name = name;
-            Specifications = new List<string>() {specification};
+            MetadataNames = [];
+            MetadataValues = [];
+            Specifications = [specification];
         }
 
         /// <summary>Constructor</summary>
         public CompositeFactor(string name, string path, object value)
         {
+            MetadataNames = [];
+            MetadataValues = [];
             CreateSpecifications(path, value);
         }
 
@@ -59,16 +88,9 @@ namespace Models.Factorial
         public CompositeFactor(Factor parentFactor, string path, object value)
         {
             Parent = parentFactor;
+            MetadataNames = [];
+            MetadataValues = [];
             CreateSpecifications(path, value);
-        }
-
-        /// <summary>Contents of the CSV file</summary>
-        [Display]
-        public DataTable Data
-        {
-            get {
-                return new DataTable();
-            }
         }
 
         /// <summary>
@@ -142,13 +164,13 @@ namespace Models.Factorial
                     _models = new List<IModel>() {model};
                 }
                 Name = model.Name;
-                Specifications = new List<string>() {$"{path}"};
+                Specifications = [$"{path}"];
             }
             else
             {
                 _models = new List<IModel>();
                 Name = value.ToString();
-                Specifications = new List<string>() {$"{path}={value}"};
+                Specifications = [$"{path}={value}"];
             }
         }
 
@@ -159,13 +181,13 @@ namespace Models.Factorial
         {
             List<CompositeFactorPair> pairs = new List<CompositeFactorPair>();
 
-            List<string> specifications = Specifications;
+            IEnumerable<string> specifications = Specifications;
             //remove all blank lines
             specifications = specifications.Where(specification => specification.Length > 0).ToList();
             //remove all commented lines
             specifications = specifications.Where(specification => !specification.StartsWith("//")).ToList();
 
-            if (specifications == null && specifications.Count == 0)
+            if (specifications == null && specifications.Count() == 0)
                 return pairs;
 
             List<IModel> models = new List<IModel>();

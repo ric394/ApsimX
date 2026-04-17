@@ -226,16 +226,16 @@ namespace UnitTests.Factorial
                             new CompositeFactor()
                             {
                                 Name = "Factor1",
-                                Specifications = new List<string>() { "[Weather].MaxT = 10",
-                                                                        "[Weather].MinT = 20",
-                                                                        "[Clock].NumberOfTicks = 10"},
+                                Specifications = ["[Weather].MaxT = 10",
+                                                  "[Weather].MinT = 20",
+                                                  "[Clock].NumberOfTicks = 10"],
                             },
                             new CompositeFactor()
                             {
                                 Name = "Factor2",
-                                Specifications = new List<string>() { "[Weather].MaxT = 100",
-                                                                        "[Weather].MinT = 200",
-                                                                        "[Clock].NumberOfTicks = 100"},
+                                Specifications = ["[Weather].MaxT = 100",
+                                                  "[Weather].MinT = 200",
+                                                  "[Clock].NumberOfTicks = 100"],
                             }
                         }
                     }
@@ -306,9 +306,9 @@ namespace UnitTests.Factorial
                                     new CompositeFactor()
                                     {
                                         Name = "Goondiwindi",
-                                        Specifications = new List<string>() { "[Weather].MaxT = 10",
-                                                                              "[Weather].MinT = 20",
-                                                                              "[Clock]"},
+                                        Specifications = ["[Weather].MaxT = 10",
+                                                          "[Weather].MinT = 20",
+                                                          "[Clock]"],
                                         Children = new List<IModel>()
                                         {
                                             new MockClock()
@@ -322,9 +322,9 @@ namespace UnitTests.Factorial
                                     new CompositeFactor()
                                     {
                                         Name = "Toowoomba",
-                                        Specifications = new List<string>() { "[Weather].MaxT = 100",
-                                                                              "[Weather].MinT = 200",
-                                                                              "[Clock]"},
+                                        Specifications = ["[Weather].MaxT = 100",
+                                                          "[Weather].MinT = 200",
+                                                          "[Clock]"],
                                         Children = new List<IModel>()
                                         {
                                             new MockClock()
@@ -407,7 +407,7 @@ namespace UnitTests.Factorial
                                     new CompositeFactor()
                                     {
                                         Name = "Place",
-                                        Specifications = new List<string>() {"[Clock]"},
+                                        Specifications = ["[Clock]"],
                                         Children = new List<IModel>()
                                         {
                                             new MockClock()
@@ -493,8 +493,7 @@ namespace UnitTests.Factorial
                                     new CompositeFactor()
                                     {
                                         Name = "1",
-                                        Specifications = new List<string>() { "[Sowing]",
-                                                                              "[Cutting]"},
+                                        Specifications = ["[Sowing]","[Cutting]"],
                                         Children = new List<IModel>()
                                         {
                                             new Models.Operations()
@@ -902,12 +901,12 @@ namespace UnitTests.Factorial
                                     new CompositeFactor()
                                     {
                                         Name = "Mod1",
-                                        Specifications = new List<string>() { "[Mod].A=3" },
+                                        Specifications = ["[Mod].A=3"],
                                     },
                                     new CompositeFactor()
                                     {
                                         Name = "Mod2",
-                                        Specifications = new List<string>() { "[Mod].A=4" },
+                                        Specifications = ["[Mod].A=4"],
                                     }
                                 }
                             }
@@ -991,10 +990,10 @@ namespace UnitTests.Factorial
                             new CompositeFactor()
                             {
                                 Name = "MaxT",
-                                Specifications = new List<string>(){
+                                Specifications = [
                                     "//[Weather].MaxT = 10",
                                     "[Weather].MaxT = 20"
-                                }
+                                ]
                             },
                         }
                     }
