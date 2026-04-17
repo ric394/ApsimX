@@ -60,10 +60,10 @@ namespace Models.Factorial
                     var simDescription = new SimulationDescription(baseSimulation, simulationName);
 
                     // Add an experiment descriptor.
-                    simDescription.Descriptors.Add(new SimulationDescription.Descriptor("Experiment", Name));
+                    simDescription.Descriptors.Add(new SimulationDescriptor("Experiment", Name));
 
                     // Add a simulation descriptor.
-                    simDescription.Descriptors.Add(new SimulationDescription.Descriptor("SimulationName", simulationName));
+                    simDescription.Descriptors.Add(new SimulationDescriptor("SimulationName", simulationName));
 
                     // Don't need to add a folderName descriptor, as this will be added by the base simulation.
                     IEnumerable<SimulationDescription> descriptions = baseSimulation?.GenerateSimulationDescriptions();

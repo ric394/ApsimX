@@ -41,14 +41,43 @@ namespace Models.Factorial
         /// used for graphing and filtering factors with complex composite 
         /// factors.
         /// </summary>
-        [Display(DisplayName = "Name")]
-        public string[] MetadataNames { get; set; }
+        public SimulationDescriptor[] CustomDescriptors { get; set; }
 
         /// <summary>
-        /// Values for the metadata names in MetadataNames
+        /// 
+        /// </summary>
+        [Display(DisplayName = "Name")]
+        public string[] DescriptorNames { 
+            get
+            {
+                List<string> names = new List<string>();
+                foreach(SimulationDescriptor descriptor in GetDescriptors())
+                    names.Add(descriptor.Name);
+                return names.ToArray();
+            }
+            set
+            {
+                CustomDescriptors = SetDescriptors(value, null);
+            }
+        }
+
+        /// <summary>
+        /// 
         /// </summary>
         [Display(DisplayName = "Value")]
-        public string[] MetadataValues { get; set; }
+        public string[] DescriptorValues { 
+            get
+            {
+                List<string> values = new List<string>();
+                foreach(SimulationDescriptor descriptor in GetDescriptors())
+                    values.Add(descriptor.Value);
+                return values.ToArray();
+            }
+            set
+            {
+                CustomDescriptors = SetDescriptors(null, value);
+            }
+        }
 
         /// <summary>Property for the ILineEditor to change Specifications with</summary>
         [JsonIgnore]
@@ -61,8 +90,7 @@ namespace Models.Factorial
         public CompositeFactor()
         {
             _models = new List<IModel>();
-            MetadataNames = [];
-            MetadataValues = [];
+            CustomDescriptors = [];
             Specifications = [];
         }
 
@@ -71,16 +99,14 @@ namespace Models.Factorial
         {
             _models = new List<IModel>();
             Name = name;
-            MetadataNames = [];
-            MetadataValues = [];
+            CustomDescriptors = [];
             Specifications = [specification];
         }
 
         /// <summary>Constructor</summary>
         public CompositeFactor(string name, string path, object value)
         {
-            MetadataNames = [];
-            MetadataValues = [];
+            CustomDescriptors = [];
             CreateSpecifications(path, value);
         }
 
@@ -88,8 +114,7 @@ namespace Models.Factorial
         public CompositeFactor(Factor parentFactor, string path, object value)
         {
             Parent = parentFactor;
-            MetadataNames = [];
-            MetadataValues = [];
+            CustomDescriptors = [];
             CreateSpecifications(path, value);
         }
 
@@ -115,17 +140,6 @@ namespace Models.Factorial
                     SetPropertyCommand command = new SetPropertyCommand(pair.Path, "=", pair.Value.ToString(), multiple: true);
                     simulationDescription.AddOverride(command);
                 }
-            }
-
-            //used by sobol and morris
-            if (Parent == null)
-            {
-                simulationDescription.Descriptors.Add(new SimulationDescription.Descriptor(Name, Name));
-            }
-            else
-            {
-                if (!(Parent is Factors))
-                    simulationDescription.Descriptors.Add(new SimulationDescription.Descriptor(Parent.Name, Name));
             }
         }
 
@@ -275,6 +289,63 @@ namespace Models.Factorial
                 throw new InvalidOperationException($"Error in composite factor {Name}: Has no specifications");
 
             return pairs;
+        }
+
+        private SimulationDescriptor[] GetDescriptors()
+        {
+            List<SimulationDescriptor> descriptors = new List<SimulationDescriptor>();
+            //used by sobol and morris
+            if (Parent == null)
+            {
+                descriptors.Add(new SimulationDescriptor(Name, Name));
+            }
+            else
+            {
+                if (!(Parent is Factors))
+                    descriptors.Add(new SimulationDescriptor(Parent.Name, Name));
+            }
+
+            //Add in metadata descriptors
+            for(int i = 0; i < CustomDescriptors.Length; i++)
+                descriptors.Add(new SimulationDescriptor(CustomDescriptors[i].Name, CustomDescriptors[i].Value));
+
+            return descriptors.ToArray();
+        }
+
+        private SimulationDescriptor[] SetDescriptors(string[] names, string[] values)
+        {
+            //Work out which index have read only descriptors in them
+            SimulationDescriptor[] descriptors = GetDescriptors().ToArray();
+            IEnumerable<string> descriptorNames = descriptors.Select(d => d.Name);
+            IEnumerable<string> customDescriptors = CustomDescriptors.Select(d => d.Name);
+            IEnumerable<string> readOnlyDescriptors = descriptorNames.Except(customDescriptors);
+
+            //build a new list of custom descript based on what is given, skipping read only descriptors
+            List<SimulationDescriptor> newCustomDescriptors = new List<SimulationDescriptor>();
+            if (names != null)
+            {
+                foreach(string name in names)
+                {
+                    string value = "";
+                    if (descriptorNames.Contains(name))
+                        value = descriptors.First(d => d.Name == name).Value;
+                    if (!readOnlyDescriptors.Contains(name))
+                        newCustomDescriptors.Add(new SimulationDescriptor(name, value));
+                }
+            }
+            //values must be set 2nd as they cannot be matched back to descriptors.
+            if (values != null)
+            {
+                for(int i = 0; i < values.Length && i < descriptors.Count(); i++)
+                {
+                    string name = descriptors[i].Name;
+                    string value = values[i];
+                    if (!readOnlyDescriptors.Contains(name))
+                        newCustomDescriptors.Add(new SimulationDescriptor(name, value));
+                }
+            }
+
+            return newCustomDescriptors.ToArray();
         }
 
         private class CompositeFactorPair
