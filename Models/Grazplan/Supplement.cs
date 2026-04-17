@@ -153,6 +153,38 @@ namespace Models.GrazPlan
             }
         }
 
+        /// <summary>Gets the array of attributes and initial amount in each supplement store</summary>
+        /// <value>List of stores</value>
+        [JsonIgnore]
+        public StoreType[] Stores
+        {
+            get
+            {
+                StoreType[] result = new StoreType[theModel.Count];
+                for (int i = 0; i < theModel.Count; i++)
+                {
+                    result[i] = new StoreType
+                    {
+                        Name = theModel[i].Name,
+                        Stored = theModel[i].Amount,
+                        IsRoughage = theModel[i].IsRoughage,
+                        DMContent = theModel[i].DMPropn,
+                        DMD = theModel[i].DMDigestibility,
+                        MEContent = theModel[i].ME2DM,
+                        CPConc = theModel[i].CrudeProt,
+                        ProtDg = theModel[i].DegProt,
+                        PConc = theModel[i].Phosphorus,
+                        SConc = theModel[i].Sulphur,
+                        EEConc = theModel[i].EtherExtract,
+                        ADIP2CP = theModel[i].ADIP2CP,
+                        AshAlk = theModel[i].AshAlkalinity,
+                        MaxPassage = theModel[i].MaxPassage
+                    };
+                }               
+                return result;
+            }
+        }
+
         /// <summary>
         /// Gets or sets the list of paddock names
         /// If the variable is not given, or if it has zero length, the component will autodetect paddocks
