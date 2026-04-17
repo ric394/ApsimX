@@ -4,7 +4,6 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using APSIM.Core;
-using APSIM.Shared.Documentation.Extensions;
 using APSIM.Shared.Extensions.Collections;
 using APSIM.Shared.Utilities;
 using Models.Core;
@@ -28,14 +27,14 @@ namespace Models.Factorial
     {
         /// <summary>
         /// A list of models that have been passed into this composite factor 
-        /// by the one edge case contructor that does that
+        /// by the one edge case constructor that does that
         /// </summary>
         private List<IModel> _models { get; set; }
 
-        /// <summary>Gets or sets the specification to create overides for a simulation.</summary>
+        /// <summary>Gets or sets the specification to create overrides for a simulation.</summary>
         public List<string> Specifications { get; set; }
 
-        /// <summary>Parameterless constrctor needed for serialisation</summary>
+        /// <summary>Parameterless constructor needed for serialisation</summary>
         public CompositeFactor()
         {
             _models = new List<IModel>();
@@ -96,8 +95,16 @@ namespace Models.Factorial
                 }
             }
 
-            if (Parent != null && !(Parent is Factors))
-                simulationDescription.Descriptors.Add(new SimulationDescription.Descriptor(Parent.Name, Name));
+            //used by sobol and morris
+            if (Parent == null)
+            {
+                simulationDescription.Descriptors.Add(new SimulationDescription.Descriptor(Name, Name));
+            }
+            else
+            {
+                if (!(Parent is Factors))
+                    simulationDescription.Descriptors.Add(new SimulationDescription.Descriptor(Parent.Name, Name));
+            }
         }
 
         /// <summary>Return paths to all files referenced by this model.</summary>
