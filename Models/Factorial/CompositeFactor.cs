@@ -51,7 +51,7 @@ namespace Models.Factorial
             get
             {
                 List<string> names = new List<string>();
-                foreach(SimulationDescriptor descriptor in GetDescriptors())
+                foreach(SimulationDescriptor descriptor in CustomDescriptors)
                     names.Add(descriptor.Name);
                 return names.ToArray();
             }
@@ -69,7 +69,7 @@ namespace Models.Factorial
             get
             {
                 List<string> values = new List<string>();
-                foreach(SimulationDescriptor descriptor in GetDescriptors())
+                foreach(SimulationDescriptor descriptor in CustomDescriptors)
                     values.Add(descriptor.Value);
                 return values.ToArray();
             }
@@ -141,6 +141,22 @@ namespace Models.Factorial
                     simulationDescription.AddOverride(command);
                 }
             }
+            
+            List<SimulationDescriptor> descriptors = new List<SimulationDescriptor>();
+            //used by sobol and morris
+            if (Parent == null)
+            {
+                descriptors.Add(new SimulationDescriptor(Name, Name));
+            }
+            else
+            {
+                if (!(Parent is Factors))
+                    descriptors.Add(new SimulationDescriptor(Parent.Name, Name));
+            }
+            
+            //add any custom descriptors on
+            foreach(SimulationDescriptor descriptor in CustomDescriptors)
+                simulationDescription.Descriptors.Add(descriptor);
         }
 
         /// <summary>Return paths to all files referenced by this model.</summary>
@@ -291,57 +307,34 @@ namespace Models.Factorial
             return pairs;
         }
 
-        private SimulationDescriptor[] GetDescriptors()
-        {
-            List<SimulationDescriptor> descriptors = new List<SimulationDescriptor>();
-            //used by sobol and morris
-            if (Parent == null)
-            {
-                descriptors.Add(new SimulationDescriptor(Name, Name));
-            }
-            else
-            {
-                if (!(Parent is Factors))
-                    descriptors.Add(new SimulationDescriptor(Parent.Name, Name));
-            }
-
-            //Add in metadata descriptors
-            for(int i = 0; i < CustomDescriptors.Length; i++)
-                descriptors.Add(new SimulationDescriptor(CustomDescriptors[i].Name, CustomDescriptors[i].Value));
-
-            return descriptors.ToArray();
-        }
-
         private SimulationDescriptor[] SetDescriptors(string[] names, string[] values)
         {
             //Work out which index have read only descriptors in them
-            SimulationDescriptor[] descriptors = GetDescriptors().ToArray();
-            IEnumerable<string> descriptorNames = descriptors.Select(d => d.Name);
-            IEnumerable<string> customDescriptors = CustomDescriptors.Select(d => d.Name);
-            IEnumerable<string> readOnlyDescriptors = descriptorNames.Except(customDescriptors);
+            string[] customsDescriptorNames = CustomDescriptors.Select(d => d.Name).ToArray();
 
-            //build a new list of custom descript based on what is given, skipping read only descriptors
+            //build a new list of custom descript based on what is given
             List<SimulationDescriptor> newCustomDescriptors = new List<SimulationDescriptor>();
             if (names != null)
             {
                 foreach(string name in names)
                 {
-                    string value = "";
-                    if (descriptorNames.Contains(name))
-                        value = descriptors.First(d => d.Name == name).Value;
-                    if (!readOnlyDescriptors.Contains(name))
-                        newCustomDescriptors.Add(new SimulationDescriptor(name, value));
+                    if (!string.IsNullOrEmpty(name))
+                    {
+                        string value = "";
+                        if (customsDescriptorNames.Contains(name))
+                            value = CustomDescriptors.First(d => d.Name == name).Value;
+                        newCustomDescriptors.Add(new SimulationDescriptor(name.Trim(), value.Trim()));
+                    }
                 }
             }
             //values must be set 2nd as they cannot be matched back to descriptors.
             if (values != null)
             {
-                for(int i = 0; i < values.Length && i < descriptors.Count(); i++)
+                for(int i = 0; i < values.Length && i < customsDescriptorNames.Count(); i++)
                 {
-                    string name = descriptors[i].Name;
+                    string name = customsDescriptorNames[i];
                     string value = values[i];
-                    if (!readOnlyDescriptors.Contains(name))
-                        newCustomDescriptors.Add(new SimulationDescriptor(name, value));
+                    newCustomDescriptors.Add(new SimulationDescriptor(name.Trim(), value.Trim()));
                 }
             }
 

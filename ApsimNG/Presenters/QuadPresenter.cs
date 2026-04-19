@@ -287,7 +287,7 @@ namespace UserInterface.Presenters
         private void CreateLayoutCompositeFactor()
         {
             AddCode(WidgetPosition.TopLeft);
-            AddText (WidgetPosition.TopRight, "Metadata:");
+            AddText(WidgetPosition.TopRight, "Custom Simulation Descriptors:");
             AddGrid(WidgetPosition.BottomRight);
             view.OverrideSlider(0.7);
         }
