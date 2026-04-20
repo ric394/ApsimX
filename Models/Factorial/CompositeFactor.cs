@@ -32,7 +32,31 @@ namespace Models.Factorial
         /// </summary>
         private List<IModel> _models { get; set; }
 
-        /// <summary>Gets or sets the specification to create overrides for a simulation.</summary>
+        /// <summary>
+        /// The number of descriptors for this composite factor that are 
+        /// generated at the experiment level.
+        /// </summary>
+        private int _numberAutomaticDescriptors {
+            get
+            {
+                List<SimulationDescriptor> descriptors = GetExperimentDescriptors();
+                if (descriptors != null)
+                    return descriptors.Count() - CustomDescriptors.Count();
+                else
+                    return CustomDescriptors.Count();
+            }
+        }
+
+        /// <summary>
+        /// Variables to hold the names and values of Descriptors during updates
+        /// </summary>
+        private string[] _names;
+        private string[] _values;
+
+        /// <summary>
+        /// Gets or sets the specification to create overrides for a 
+        /// simulation.
+        /// </summary>
         public string[] Specifications { get; set; }
 
         /// <summary>
@@ -47,17 +71,20 @@ namespace Models.Factorial
         /// 
         /// </summary>
         [Display(DisplayName = "Name")]
+        [JsonIgnore]
         public string[] DescriptorNames { 
             get
             {
-                List<string> names = new List<string>();
-                foreach(SimulationDescriptor descriptor in CustomDescriptors)
-                    names.Add(descriptor.Name);
-                return names.ToArray();
+                List<SimulationDescriptor> descriptors = GetExperimentDescriptors();
+                if (descriptors != null)
+                    return GetExperimentDescriptors().Select(d => d.Name).ToArray();
+                else
+                    return [];
             }
             set
             {
-                CustomDescriptors = SetDescriptors(value, null);
+                _names = value;
+                UpdateDescriptors();
             }
         }
 
@@ -65,17 +92,20 @@ namespace Models.Factorial
         /// 
         /// </summary>
         [Display(DisplayName = "Value")]
+        [JsonIgnore]
         public string[] DescriptorValues { 
             get
             {
-                List<string> values = new List<string>();
-                foreach(SimulationDescriptor descriptor in CustomDescriptors)
-                    values.Add(descriptor.Value);
-                return values.ToArray();
+                List<SimulationDescriptor> descriptors = GetExperimentDescriptors();
+                if (descriptors != null)
+                    return GetExperimentDescriptors().Select(d => d.Value).ToArray();
+                else
+                    return [];
             }
             set
             {
-                CustomDescriptors = SetDescriptors(null, value);
+                _values = value;
+                UpdateDescriptors();
             }
         }
 
@@ -307,38 +337,34 @@ namespace Models.Factorial
             return pairs;
         }
 
-        private SimulationDescriptor[] SetDescriptors(string[] names, string[] values)
+        private void UpdateDescriptors()
         {
-            //Work out which index have read only descriptors in them
-            string[] customsDescriptorNames = CustomDescriptors.Select(d => d.Name).ToArray();
-
-            //build a new list of custom descript based on what is given
-            List<SimulationDescriptor> newCustomDescriptors = new List<SimulationDescriptor>();
-            if (names != null)
+            if (_names != null && _values != null && _names.Length == _values.Length)
             {
-                foreach(string name in names)
-                {
-                    if (!string.IsNullOrEmpty(name))
-                    {
-                        string value = "";
-                        if (customsDescriptorNames.Contains(name))
-                            value = CustomDescriptors.First(d => d.Name == name).Value;
-                        newCustomDescriptors.Add(new SimulationDescriptor(name.Trim(), value.Trim()));
-                    }
-                }
-            }
-            //values must be set 2nd as they cannot be matched back to descriptors.
-            if (values != null)
-            {
-                for(int i = 0; i < values.Length && i < customsDescriptorNames.Count(); i++)
-                {
-                    string name = customsDescriptorNames[i];
-                    string value = values[i];
-                    newCustomDescriptors.Add(new SimulationDescriptor(name.Trim(), value.Trim()));
-                }
-            }
+                int offset = _numberAutomaticDescriptors;
 
-            return newCustomDescriptors.ToArray();
+                List<SimulationDescriptor> newCustomDescriptors = new List<SimulationDescriptor>();
+                for(int i = offset; i < _names.Length; i++)
+                    newCustomDescriptors.Add(new SimulationDescriptor(_names[i].Trim(), _values[i].Trim()));
+                
+                CustomDescriptors = newCustomDescriptors.ToArray();
+            }
+        }
+
+        private List<SimulationDescriptor> GetExperimentDescriptors()
+        {
+            if (Node == null)
+                return null;
+            
+            Experiment experiment = Node.FindParent<Experiment>(recurse: true);
+            if (experiment == null)
+                return null;
+            
+            SimulationDescription description = experiment.GetDescriptors(new List<CompositeFactor>() {this});
+            if (description == null)
+                return null;
+
+            return description.Descriptors;
         }
 
         private class CompositeFactorPair
