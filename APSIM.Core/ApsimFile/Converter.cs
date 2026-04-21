@@ -19,7 +19,7 @@ namespace APSIM.Core;
 internal class Converter
 {
     /// <summary>Gets the latest .apsimx file format version.</summary>
-    public static int LatestVersion { get { return 214; } }
+    public static int LatestVersion { get { return 215; } }
 
     /// <summary>Converts a .apsimx string to the latest version.</summary>
     /// <param name="st">XML or JSON string to convert.</param>
@@ -7657,10 +7657,8 @@ internal class Converter
     /// </summary>
     /// <param name="root"></param>
     /// <param name="fileName"></param>
-    private static void UpgradeToVersion214(JObject root, string fileName)
+    private static void UpgradeToVersion215(JObject root, string fileName)
     {
-
-
         foreach(JObject supplement in JsonUtilities.ChildrenOfType(root, "Supplement"))
         {
             var stores = supplement["Stores"];
@@ -7706,6 +7704,4 @@ internal class Converter
             manager.Save();
         }
     }
-
-
 }
