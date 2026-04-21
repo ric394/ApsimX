@@ -77,7 +77,10 @@ namespace Models.Factorial
             {
                 List<SimulationDescriptor> descriptors = GetExperimentDescriptors();
                 if (descriptors != null)
-                    return GetExperimentDescriptors().Select(d => d.Name).ToArray();
+                {
+                    descriptors.AddRange(CustomDescriptors);
+                    return descriptors.Select(d => d.Name).ToArray();
+                }
                 else
                     return [];
             }
@@ -98,7 +101,10 @@ namespace Models.Factorial
             {
                 List<SimulationDescriptor> descriptors = GetExperimentDescriptors();
                 if (descriptors != null)
-                    return GetExperimentDescriptors().Select(d => d.Value).ToArray();
+                {
+                    descriptors.AddRange(CustomDescriptors);
+                    return descriptors.Select(d => d.Value).ToArray();
+                }
                 else
                     return [];
             }
@@ -341,13 +347,17 @@ namespace Models.Factorial
         {
             if (_names != null && _values != null && _names.Length == _values.Length)
             {
-                int offset = _numberAutomaticDescriptors;
-
-                List<SimulationDescriptor> newCustomDescriptors = new List<SimulationDescriptor>();
-                for(int i = offset; i < _names.Length; i++)
-                    newCustomDescriptors.Add(new SimulationDescriptor(_names[i].Trim(), _values[i].Trim()));
-                
-                CustomDescriptors = newCustomDescriptors.ToArray();
+                List<SimulationDescriptor> descriptors = GetExperimentDescriptors();
+                if (descriptors != null)
+                {
+                    IEnumerable<string> readOnlyNames = descriptors.Select(d => d.Name);
+                    List<SimulationDescriptor> newCustomDescriptors = new List<SimulationDescriptor>();
+                    for(int i = 0; i < _names.Length; i++)
+                        if (!readOnlyNames.Contains(_names[i]) && !string.IsNullOrEmpty(_names[i].Trim()))
+                            newCustomDescriptors.Add(new SimulationDescriptor(_names[i].Trim(), _values[i].Trim()));
+                    
+                    CustomDescriptors = newCustomDescriptors.ToArray();
+                }
             }
         }
 
@@ -364,7 +374,8 @@ namespace Models.Factorial
             if (description == null)
                 return null;
 
-            return description.Descriptors;
+            List<SimulationDescriptor> descriptors = description.Descriptors.ToList();
+            return descriptors.Except(CustomDescriptors).ToList();
         }
 
         private class CompositeFactorPair
