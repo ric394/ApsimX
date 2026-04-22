@@ -211,7 +211,7 @@ namespace Models.GrazPlan
         }
 
         /// <summary>
-        /// Gets or set the number of stores
+        /// Gets the number of supplement stores
         /// </summary>
         /// <value>
         /// The number of stores
@@ -390,33 +390,6 @@ namespace Models.GrazPlan
         public StoreType GetSupplementStoreByName(string name)
         {
             return Children.FirstOrDefault(store => store.Name == name) as StoreType;
-        }
-
-        /// <summary>
-        /// Gets the supplement store by index.
-        /// </summary>
-        /// <param name="index">The index of the supplement store.</param>
-        /// <returns>The supplement store with the specified index, or null if not found.</returns>
-        public StoreType GetSupplementStoreByIndex(int index)
-        {
-            var store = Children.OfType<StoreType>().ElementAtOrDefault(index);
-            if (store == null)
-                throw new Exception("Error finding supplement store with index " + index);
-            StoreType modelStore = this[store.Name];
-            if (modelStore != null)
-                return modelStore;
-            else
-                throw new Exception("Error finding supplement store with index " + index);
-        }
-
-
-        /// <summary>
-        /// Gets the total amount of supplements in all stores.
-        /// </summary>
-        /// <returns>The total amount of supplements in all stores.</returns>
-        public double GetTotalAmountInStore()
-        {
-            return theModel.TotalAmount;
         }
 
         /// <summary>
