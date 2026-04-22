@@ -7689,19 +7689,17 @@ internal class Converter
                             ["AshAlk"] = store["AshAlk"],
                             ["MaxPassage"] = store["MaxPassage"]
                         };
+
+                        if (newChildStore["Name"].ToString().Contains(".5me"))
+                        {
+                            newChildStore["Name"] = newChildStore["Name"].ToString().Replace(".", "");
+                        }
                         JObject supplementStoreParent = JsonUtilities.Parent(store) as JObject;
                         JsonUtilities.AddChild(supplementStoreParent, newChildStore);  
                     }
                 }
                 supplement.Remove("Stores");                
             }
-        }
-
-        // Update manager script lines.
-        foreach (var manager in JsonUtilities.ChildManagers(root))
-        {
-            manager.Replace("supplement.Stores.Sum(supp => supp.Stored)", "supplement.GetTotalAmountInStore()");
-            manager.Save();
         }
     }
 }
