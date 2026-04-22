@@ -117,6 +117,8 @@ public partial class ReplaceCommand : IModelCommand
         var originalChildren = originalModel.GetChildren()?.ToArray();
         var replacementChildren = replacementModel.GetChildren()?.ToArray();
 
+        replacementModel.Enabled = originalModel.Enabled;
+
         if (originalChildren is null || replacementChildren is null || originalChildren.Length == 0 || replacementChildren.Length == 0)
             return;
 
