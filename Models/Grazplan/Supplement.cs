@@ -397,19 +397,20 @@ namespace Models.GrazPlan
         /// </summary>
         public void AddToStore(StoreType supplement)
         {
-            theModel.AddToStore(supplement.Stored, 
-                supplement.Name, 
-                Convert.ToInt32(supplement.IsRoughage), 
-                supplement.DMContent, 
-                supplement.DMD, 
-                supplement.MEContent, 
-                supplement.CPConc, 
-                supplement.ProtDg, 
-                supplement.PConc, 
-                supplement.SConc, 
-                supplement.EEConc, 
-                supplement.ADIP2CP, 
-                supplement.AshAlk, 
+            theModel.AddToStore(
+                supplement.Stored,
+                supplement.Name,
+                supplement.IsRoughage ? 0 : 1,
+                supplement.DMContent,
+                supplement.DMD,
+                supplement.MEContent,
+                supplement.CPConc,
+                supplement.ProtDg,
+                supplement.EEConc,
+                supplement.ADIP2CP,
+                supplement.PConc,
+                supplement.SConc,
+                supplement.AshAlk,
                 supplement.MaxPassage);
         }
 
