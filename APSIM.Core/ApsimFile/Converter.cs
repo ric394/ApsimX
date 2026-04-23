@@ -7701,5 +7701,31 @@ internal class Converter
                 supplement.Remove("Stores");                
             }
         }
+
+        foreach(JObject operations in JsonUtilities.ChildrenOfType(root, "Operations"))
+        {
+            foreach(JObject operation in operations["OperationsList"])
+            {
+                // Remove period from supplement names in the Actions and 
+                // Line properties.
+                // The names of these supplements will be changed to above to a
+                // legal name as periods are not allowed.
+                if (operation["Action"] is JToken actionObject)
+                {
+                    if (actionObject.ToString().Contains(".5me"))
+                    {
+                        operation["Action"] = actionObject.ToString().Replace(".5me", "5me");
+                    }
+                }
+
+                if (operation["Line"] is JToken lineObject)
+                {
+                    if (lineObject.ToString().Contains(".5me"))
+                    {
+                        operation["Line"] = lineObject.ToString().Replace(".5me", "5me");
+                    }
+                }
+            }
+        }
     }
 }
