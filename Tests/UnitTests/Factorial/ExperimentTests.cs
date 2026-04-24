@@ -1009,5 +1009,84 @@ namespace UnitTests.Factorial
             Assert.That(weather.MaxT, Is.EqualTo(20));
         }
 
+        /// <summary>Ensure composite that has a memo as a child still works and the Memo should not overwrite an existing Memo in the simulation.</summary>
+        [Test]
+        public void EnsureCompositeWithCustomDescriptorsWorks()
+        {
+            var experiment = new Experiment()
+            {
+                Name = "Exp1",
+                Children = new List<IModel>()
+                {
+                    new Simulation()
+                    {
+                        Name = "BaseSimulation",
+                        Children = new List<IModel>()
+                        {
+                            new MockClock()
+                            {
+                                Name = "Clock",
+                                NumberOfTicks = 1,
+                                Today = DateTime.MinValue
+                            },
+                            new MockSummary()
+                        }
+                    },
+                    new Factors()
+                    {
+                        Children = new List<IModel>()
+                        {
+                            new Factor()
+                            {
+                                Name = "Site",
+                                Children = new List<IModel>()
+                                {
+                                    new CompositeFactor()
+                                    {
+                                        Name = "Place",
+                                        Specifications = ["[Clock]"],
+                                        CustomDescriptors = [new SimulationDescriptor("Custom", "SomeText")],
+                                        Children = new List<IModel>()
+                                        {
+                                            new MockClock()
+                                            {
+                                                Name = "Clock",
+                                                NumberOfTicks = 10,
+                                                Today = DateTime.MinValue
+                                            }
+                                        }
+                                    },
+                                    new CompositeFactor()
+                                    {
+                                        Name = "PlaceTwo",
+                                        Specifications = ["[Clock]"],
+                                        Children = new List<IModel>()
+                                        {
+                                            new MockClock()
+                                            {
+                                                Name = "Clock",
+                                                NumberOfTicks = 10,
+                                                Today = DateTime.MinValue
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+            var tree = Node.Create(experiment);
+
+            var sims = experiment.GenerateSimulationDescriptions();
+            Assert.That(sims[0].Name, Is.EqualTo("Exp1SitePlace"));
+            Assert.That(sims[0].Descriptors.Find(d => d.Name == "Experiment").Value, Is.EqualTo("Exp1"));
+            Assert.That(sims[0].Descriptors.Find(d => d.Name == "Custom").Value, Is.EqualTo("SomeText"));
+            Assert.That(sims[0].Descriptors.Find(d => d.Name == "Site").Value, Is.EqualTo("Place"));
+            Assert.That(sims[1].Name, Is.EqualTo("Exp1SitePlaceTwo"));
+            Assert.That(sims[1].Descriptors.Find(d => d.Name == "Experiment").Value, Is.EqualTo("Exp1"));
+            Assert.That(sims[1].Descriptors.Find(d => d.Name == "Custom"), Is.Null);
+            Assert.That(sims[1].Descriptors.Find(d => d.Name == "Site").Value, Is.EqualTo("PlaceTwo"));
+        }
     }
 }
