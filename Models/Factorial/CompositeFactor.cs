@@ -53,7 +53,7 @@ namespace Models.Factorial
         public SimulationDescriptor[] CustomDescriptors { get; set; }
 
         /// <summary>
-        /// 
+        /// Helper Property to display CustomDescriptors in a Grid interface
         /// </summary>
         [Display(DisplayName = "Name")]
         [JsonIgnore]
@@ -78,7 +78,7 @@ namespace Models.Factorial
         }
 
         /// <summary>
-        /// 
+        /// Helper Property to display CustomDescriptors in a Grid interface
         /// </summary>
         [Display(DisplayName = "Value")]
         [JsonIgnore]
@@ -117,7 +117,7 @@ namespace Models.Factorial
             Specifications = [];
         }
 
-        /// <summary>Constructor</summary>
+        /// <summary>Constructor for full specification line</summary>
         public CompositeFactor(string name, string specification)
         {
             _models = new List<IModel>();
@@ -126,14 +126,14 @@ namespace Models.Factorial
             Specifications = [specification];
         }
 
-        /// <summary>Constructor</summary>
+        /// <summary>Constructor for path and value</summary>
         public CompositeFactor(string name, string path, object value)
         {
             CustomDescriptors = [];
             CreateSpecifications(path, value);
         }
 
-        /// <summary>Constructor</summary>
+        /// <summary>Constructor for a composite factor created from a Factor</summary>
         public CompositeFactor(Factor parentFactor, string path, object value)
         {
             Parent = parentFactor;
@@ -166,8 +166,7 @@ namespace Models.Factorial
             }
             
             List<SimulationDescriptor> descriptors = new List<SimulationDescriptor>();
-            //used by sobol and morris
-            if (Parent == null)
+            if (Parent == null) //used by sobol and morris
             {
                 descriptors.Add(new SimulationDescriptor(Name, Name));
             }
@@ -176,7 +175,9 @@ namespace Models.Factorial
                 if (!(Parent is Factors))
                     descriptors.Add(new SimulationDescriptor(Parent.Name, Name));
             }
-            
+            foreach(SimulationDescriptor descriptor in descriptors)
+                simulationDescription.Descriptors.Add(descriptor);
+
             //add any custom descriptors on
             foreach(SimulationDescriptor descriptor in CustomDescriptors)
                 simulationDescription.Descriptors.Add(descriptor);
@@ -330,6 +331,11 @@ namespace Models.Factorial
             return pairs;
         }
 
+        /// <summary>
+        /// Since the grid interface will udpate the names and values column 
+        /// seperately, this function is run on both so the CustomDescriptors 
+        /// property is correctly updated when either are touched.
+        /// </summary>
         private void UpdateDescriptors()
         {
             if (_names != null && _values != null && _names.Length == _values.Length)
@@ -348,6 +354,10 @@ namespace Models.Factorial
             }
         }
 
+        /// <summary>
+        /// Gets the list of automatically created Descriptors for this factor
+        /// </summary>
+        /// <returns></returns>
         private List<SimulationDescriptor> GetExperimentDescriptors()
         {
             if (Node == null)
@@ -365,6 +375,11 @@ namespace Models.Factorial
             return descriptors.Except(CustomDescriptors).ToList();
         }
 
+        /// <summary>
+        /// A private class to help track the properties of a specification.
+        /// Should not be saved to a file and just generated from text 
+        /// specifications.
+        /// </summary>
         private class CompositeFactorPair
         {
             /// <summary>Path to change</summary>
