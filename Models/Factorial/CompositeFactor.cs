@@ -33,21 +33,6 @@ namespace Models.Factorial
         private List<IModel> _models { get; set; }
 
         /// <summary>
-        /// The number of descriptors for this composite factor that are 
-        /// generated at the experiment level.
-        /// </summary>
-        private int _numberAutomaticDescriptors {
-            get
-            {
-                List<SimulationDescriptor> descriptors = GetExperimentDescriptors();
-                if (descriptors != null)
-                    return descriptors.Count() - CustomDescriptors.Count();
-                else
-                    return CustomDescriptors.Count();
-            }
-        }
-
-        /// <summary>
         /// Variables to hold the names and values of Descriptors during updates
         /// </summary>
         private string[] _names;
@@ -79,7 +64,8 @@ namespace Models.Factorial
                 if (descriptors != null)
                 {
                     descriptors.AddRange(CustomDescriptors);
-                    return descriptors.Select(d => d.Name).ToArray();
+                    _names = descriptors.Select(d => d.Name).ToArray();
+                    return _names;
                 }
                 else
                     return [];
@@ -103,7 +89,8 @@ namespace Models.Factorial
                 if (descriptors != null)
                 {
                     descriptors.AddRange(CustomDescriptors);
-                    return descriptors.Select(d => d.Value).ToArray();
+                    _values = descriptors.Select(d => d.Value).ToArray();
+                    return _values;
                 }
                 else
                     return [];
