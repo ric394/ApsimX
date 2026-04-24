@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text.Json.Serialization;
@@ -131,6 +130,7 @@ namespace Models.Factorial
         {
             CustomDescriptors = [];
             CreateSpecifications(path, value);
+            Name = name;
         }
 
         /// <summary>Constructor for a composite factor created from a Factor</summary>
@@ -148,6 +148,8 @@ namespace Models.Factorial
         public void ApplyToSimulation(SimulationDescription simulationDescription)
         {
             List<CompositeFactorPair> pairs = ParseSpecifications();
+            if (pairs.Count == 0)
+                throw new InvalidOperationException($"Error in composite factor {Name}: Has no specifications");
 
             // Add a simulation override for each path / value combination.
             foreach(CompositeFactorPair pair in pairs)
@@ -186,8 +188,10 @@ namespace Models.Factorial
         /// <summary>Return paths to all files referenced by this model.</summary>
         public IEnumerable<string> GetReferencedFileNames()
         {
-            List<CompositeFactorPair> pairs = ParseSpecifications();
+            if (Node == null)
+                return new List<string>();
 
+            List<CompositeFactorPair> pairs = ParseSpecifications();
             Simulations sims = Node.FindParent<Simulations>(recurse: true);
             List<string> values = new List<string>();
             foreach(CompositeFactorPair pair in pairs)
@@ -234,6 +238,10 @@ namespace Models.Factorial
         private List<CompositeFactorPair> ParseSpecifications()
         {
             List<CompositeFactorPair> pairs = new List<CompositeFactorPair>();
+
+            //If there are no specifications, return an empty set of pairs.
+            if (Specifications == null)
+                return pairs;
 
             IEnumerable<string> specifications = Specifications;
             //remove all blank lines
@@ -324,9 +332,6 @@ namespace Models.Factorial
             foreach (var model in extraModels)
                 if (model.Enabled && !(model is Memo))
                     throw new InvalidOperationException($"Error in composite factor {Name}: Unused child models found: {string.Join(", ", extraModels.Select(m => m.Name))}");
-
-            if (pairs.Count == 0)
-                throw new InvalidOperationException($"Error in composite factor {Name}: Has no specifications");
 
             return pairs;
         }
