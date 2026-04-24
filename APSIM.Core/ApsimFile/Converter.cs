@@ -7677,6 +7677,7 @@ internal class Converter
                             ["$type"] = store["$type"],
                             ["Name"] = store["Name"],
                             ["Stored"] = store["Stored"],
+                            ["IsRoughage"] = store["IsRoughage"],
                             ["DMContent"] = store["DMContent"],
                             ["DMD"] = store["DMD"],
                             ["MEContent"] = store["MEContent"],
