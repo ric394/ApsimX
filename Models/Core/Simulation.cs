@@ -109,6 +109,7 @@ namespace Models.Core
         public bool IsInitialising => Node.IsInitialising;
 
         /// <summary>A list of keyword/value meta data descriptors for this simulation.</summary>
+        [JsonIgnore]
         public List<SimulationDescriptor> Descriptors { get; set; }
 
         /// <summary>Return the filename that this simulation sits in.</summary>
