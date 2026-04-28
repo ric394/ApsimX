@@ -15,7 +15,7 @@ public partial class SetPropertyCommand: IModelCommand
     /// </remarks>
     public static IModelCommand Create(string command, string relativeToDirectory)
     {
-        string modelNameWithBrackets = @"[\w\d\[\]\.\:]+";
+        string modelNameWithBrackets = @"[\w\d\[\]\.\: ]*[\w\d\[\]\.\:][\w\d\[\]\.\: ]*";
 
         string pattern = $@"(?<keyword>{modelNameWithBrackets})\s*(?<operator>=|\+=|-=)\s*(?<pipe>\<)*\s*(?<value>[^\<]+)*";
 
