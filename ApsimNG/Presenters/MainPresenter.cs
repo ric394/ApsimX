@@ -1027,7 +1027,7 @@ namespace UserInterface.Presenters
             try
             {
                 string defaultFileSpec = "APSIM files (*.apsimx, *.json)|*.apsimx;*.json";
-                string linuxFileSpec = "APSIM files (*.apsimx, *.json)|*.apsimx";
+                string linuxFileSpec = "APSIM files (*.apsimx)|*.apsimx";
                 if (ProcessUtilities.CurrentOS.IsUnix)
                     defaultFileSpec = linuxFileSpec;
                 string fileName = this.AskUserForOpenFileName(defaultFileSpec);
