@@ -347,8 +347,9 @@ public class CommandTests
     }
 
     /// <summary>Ensure the set property with name containing whitespace works.</summary>
-    [Test]
-    public void EnsureSetPropertyWithNameWhitespaceWorks()
+    [TestCase("Test Cultivar")]
+    [TestCase("Second Test Cultivar")]
+    public void EnsureSetPropertyWithNameWhitespaceWorks(string modelName)
     {
         Simulations simulation = new()
         {
@@ -356,14 +357,14 @@ public class CommandTests
             [
                 new Cultivar()
                 {
-                    Name = "Test Cultivar",
+                    Name = modelName,
                     Command = [ "a=1" ]
                 }
             ]
         };
         Node.Create(simulation);
 
-        IModelCommand cmd = new SetPropertyCommand("[Test Cultivar].Command", "=", "", fileName: null);
+        IModelCommand cmd = new SetPropertyCommand($"[{modelName}].Command", "=", "", fileName: null);
         cmd.Run(simulation, runner: null);
 
         var cultivar = simulation.Children.First() as Cultivar;
@@ -371,8 +372,9 @@ public class CommandTests
     }
 
     /// <summary>Ensure the set property with name containing whitespace works.</summary>
-    [Test]
-    public void EnsureSetPropertyWithMultipleNameWhitespaceWorks()
+    [TestCase("Test Cultivar")]
+    [TestCase("Second Test Cultivar")]
+    public void EnsureSetPropertyCommandStringParsingWorks(string modelName)
     {
         Simulations simulation = new()
         {
@@ -380,14 +382,14 @@ public class CommandTests
             [
                 new Cultivar()
                 {
-                    Name = "Second Test Cultivar",
+                    Name = modelName,
                     Command = [ "a=1" ]
                 }
             ]
         };
         Node.Create(simulation);
 
-        IModelCommand cmd = new SetPropertyCommand("[Second Test Cultivar].Command", "=", "", fileName: null);
+        IModelCommand cmd = SetPropertyCommand.Create($"[{modelName}].Command=", null);
         cmd.Run(simulation, runner: null);
 
         var cultivar = simulation.Children.First() as Cultivar;
