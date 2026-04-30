@@ -199,7 +199,7 @@ namespace APSIM.Workflow
                     foreach (PredictedObserved po in predictedObserveds)
                     {
                         foreach (string name in group.Folders)
-                            if (!matchingPOs.Contains(po))
+                            if (matchingPOs.Count(m => m.Name == po.Name) == 0)
                                 if (po.Node.FindParents<Folder>(name).Count() > 0 || po.Node.FindSiblings<Folder>(name).Count() > 0)
                                     matchingPOs.Add(po.Clone());
                     }
