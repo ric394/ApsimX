@@ -65,5 +65,70 @@ public class Options
     [Option("azure-pool", Required = false, HelpText = "The Azure pool to use for the workflow.")]
     public string AzurePool { get; set; } = "workflo-pool";
 
+    /// <summary>
+    /// Azure Account URL
+    /// </summary>
+    [Option("account-url", Required= false, HelpText ="Azure account URL.")]
+    public string AzureAccountURL {get;set;} = "";
+
+    /// <summary>
+    /// Azure Account name
+    /// </summary>
+    [Option("account-name", Required= false, HelpText ="Azure account name.")]
+    public string AzureAccountName {get;set;} = "";
+
+
+    /// <summary>
+    /// Primary access key for the Azure account.
+    /// </summary>
+    [Option("azure-access-key", Required= false, HelpText ="Azure primary access key.")]
+    public string PrimaryAccessKey {get;set;} = "";
+
+
+    /// <summary>
+    /// Admin password for an Azure batch pool.
+    /// </summary>
+    [Option("pool-admin-password", Required= false, HelpText ="Admin password for an Azure Batch pool.")]
+    public string PoolAdminPassword {get;set;} = "";
+
+    /// <summary>
+    /// Azure Account URL
+    /// </summary>
+    [Option("vm-size", Required= false, HelpText ="The valid Azure VM name.")]
+    public string VMSize {get;set;} = "Standard_D4d_v5";
+
+
+    /// <summary>
+    /// Azure storage name
+    /// </summary>
+    [Option("storage-name", Required= false, HelpText ="The Azure storage account name.")]
+    public string StorageAccountName {get;set;} = "";
+
+    /// <summary>
+    /// Storage connection string
+    /// </summary>
+    [Option("storage-connection-string", Required= false, HelpText ="The storage connection string.")]
+    public string StorageConnectionString {get;set;} = ""; 
+
+    /// <summary>
+    /// An env file represented as a string.
+    /// </summary>
+    [Option("env-string", Required= false, HelpText ="An env file represented as a string.")]
+    public string EnvString {get;set;} = "";  
+
+    /// <summary>
+    /// A unique job name
+    /// </summary>
+    [Option("job-name", Required= false, HelpText ="An unique job name.")]
+    public string JobName {get;set;} = "";  
+
+    /// <summary>
+    /// A unique job name
+    /// </summary>
+    [Option("key-one", Required= false, HelpText ="An Azure batch account key one or key two")]
+    public string KeyOne {get;set;} = "";     
+    
+
+
 }
     

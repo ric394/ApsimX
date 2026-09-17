@@ -76,7 +76,29 @@ public class Program
                 stopwatch.Start();
                 try
                 {
-                    PrepareAndSubmitWorkflowJob(options);
+                    // PrepareAndSubmitWorkflowJob(options);
+                    string[] validationPaths = ValidationLocationUtility.GetValidationFilePaths();
+                    if (string.IsNullOrWhiteSpace(options.PrimaryAccessKey))
+                        throw new ArgumentException("An Azure primary access key must be included to continue.");
+                    Azure.CreatePool(options.PrimaryAccessKey);
+
+                    if (validationPaths.Length < 1)
+                        throw new Exception("A list of validation paths must be provided to continue.");
+
+                    if (string.IsNullOrEmpty(options.EnvString))
+                        throw new ArgumentException("An environment variable must be provided to continue.");
+
+                    if (string.IsNullOrEmpty(options.JobName))
+                        throw new ArgumentException("A job name must be provided to continue.");
+
+                    Azure.CreateJobs(
+                        options.PrimaryAccessKey,
+                        validationPaths,
+                        options.EnvString,
+                        options.JobName,
+                        options.KeyOne
+                    );
+                    
                     stopwatch.Stop();
                 }
                 catch (Exception ex)
