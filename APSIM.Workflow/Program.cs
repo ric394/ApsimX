@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using System.Diagnostics;
 using Humanizer;
+using System.Globalization;
 
 namespace APSIM.Workflow;
 
@@ -78,27 +79,39 @@ public class Program
                 {
                     // PrepareAndSubmitWorkflowJob(options);
                     string[] validationPaths = ValidationLocationUtility.GetValidationFilePaths();
-                    if (string.IsNullOrWhiteSpace(options.PrimaryAccessKey))
-                        throw new ArgumentException("An Azure primary access key must be included to continue.");
-                    Azure.CreatePool(options.PrimaryAccessKey);
-
+                    // Create a pool name using the PR number and commit SHA.
+                    if (string.IsNullOrEmpty(options.PullRequestNumber))
+                        throw new ArgumentException("A pull request number argument must be provided for Azure batch pool creation to complete successfully.");
+                    if (string.IsNullOrEmpty(options.CommitSHA))
+                        throw new ArgumentException("A commit SHA argument must be provided for Azure batch pool creation to complete successfully.");
                     if (validationPaths.Length < 1)
                         throw new Exception("A list of validation paths must be provided to continue.");
-
                     if (string.IsNullOrEmpty(options.EnvString))
                         throw new ArgumentException("An environment variable must be provided to continue.");
 
-                    if (string.IsNullOrEmpty(options.JobName))
-                        throw new ArgumentException("A job name must be provided to continue.");
+                    string poolName = options.PullRequestNumber + options.CommitSHA;
+                    string nowDateString = DateTime.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss", CultureInfo.InvariantCulture);
+                    string jobName = $"{nowDateString}_acceptance-tests_pr-{options.PullRequestNumber}";
 
+                    // Create the environment variable dictionary for use further on 
+                    // from the environment variable string.
+                    Dictionary<string, string> envDict = [];
+                    foreach(string line in options.EnvString.Split("\n"))
+                    {
+                        string[] values = line.Split('=');
+                        envDict.Add(values[0], values[1]);
+                    }
+
+                    Azure.CreatePool(envDict["AZURE_PRIMARY_ACCESS_KEY"], poolName);
                     Azure.CreateJobs(
-                        options.PrimaryAccessKey,
+                        envDict["AZURE_PRIMARY_ACCESS_KEY"],
                         validationPaths,
-                        options.EnvString,
-                        options.JobName,
-                        options.KeyOne
+                        envDict,
+                        jobName,
+                        envDict["AZURE_KEY1"],
+                        options.PullRequestNumber,
+                        poolName
                     );
-                    
                     stopwatch.Stop();
                 }
                 catch (Exception ex)

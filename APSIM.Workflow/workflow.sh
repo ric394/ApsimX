@@ -5,13 +5,21 @@ function initialise {
     sudo snap install docker
     sleep 10
   fi
+  sudo docker pull digitalag/workflo:latest
+  sudo docker pull apsiminitiative/apsimng
 }
 
 function run_00001 {
   echo ------------------------------ >> metadata.txt
   echo Date/time: `date +"%Y-%m-%d %T"` >> metadata.txt
-  echo Hello
-  echo World
+  sudo --preserve-env docker run --rm -v $PWD:/wd -w=/wd -e AZURE_ACCOUNT_URL -e AZURE_ACCOUNT_NAME -e AZURE_PRIMARY_ACCESS_KEY -e AZURE_STORAGE_ACCOUNT_NAME -e AZURE_KEY1 -e CLIMATE_API_KEY -e AZURE_STORAGE_CONNECTION_STRING -e AZURE_STORAGE_CONTAINER -e INPUT_FILES digitalag/workflo:latest "Azure.CopyFilesFromStorage($AZURE_STORAGE_CONTAINER, $INPUT_FILES)"
+  sudo --preserve-env docker run --rm -v $PWD:/wd -w=/wd -e AZURE_ACCOUNT_URL -e AZURE_ACCOUNT_NAME -e AZURE_PRIMARY_ACCESS_KEY -e AZURE_STORAGE_ACCOUNT_NAME -e AZURE_KEY1 -e POSTATS_UPLOAD_URL -e APSIM_NO_DOCKER -e AZURE_STORAGE_CONNECTION_STRING -e AZURE_STORAGE_CONTAINER -e Path -e DockerImage -e INPUT_FILES "apsiminitiative/apsimplusr:pr-$PR_NUMBER" "$Path" --verbose
+}
+
+function run_00001_finally {
+  # Function always called, regardless of any errors.
+  sudo --preserve-env docker run --rm -v $PWD:/wd -w=/wd -e AZURE_ACCOUNT_URL -e AZURE_ACCOUNT_NAME -e AZURE_PRIMARY_ACCESS_KEY -e AZURE_STORAGE_ACCOUNT_NAME -e AZURE_KEY1 -e CLIMATE_API_KEY -e AZURE_STORAGE_CONNECTION_STRING -e AZURE_STORAGE_CONTAINER -e INPUT_FILES digitalag/workflo:latest "Checksum.CreateHashes(hashes.txt)"
+  sudo --preserve-env docker run --rm -v $PWD:/wd -w=/wd -e AZURE_ACCOUNT_URL -e AZURE_ACCOUNT_NAME -e AZURE_PRIMARY_ACCESS_KEY -e AZURE_STORAGE_ACCOUNT_NAME -e AZURE_KEY1 -e CLIMATE_API_KEY -e AZURE_STORAGE_CONNECTION_STRING -e AZURE_STORAGE_CONTAINER -e INPUT_FILES -e OUTPUT_FILES digitalag/workflo:latest "Azure.CopyFilesToStorage($AZURE_STORAGE_CONTAINER, $OUTPUT_FILES, true)"
 }
 
 

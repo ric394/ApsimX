@@ -22,11 +22,10 @@ public class Azure
     private static readonly string AZURE_ACCOUNT_NAME = "apsimbuildsysbatch";
     private static readonly string AZURE_STORAGE_ACCOUNT_NAME = "apsimbuildsysstorage";
     private static readonly string AZURE_POOL_PASSSWORD = "ZHaS2*VPW3q@*5";
-    private static readonly string AZURE_APSIM_DEFAULT_POOL_ID = "apsim-validation-pool";
 
     private static readonly string autoScaleScript =
         "TimeIntervalMinute = 5;\n" +
-        "MaxNumberNodes = 30;\n" +
+        "MaxNumberNodes = 60;\n" +
         "NumberCPUPerNode = 2;\n" +
         "NumberTasks = max($PendingTasks.GetSample(TimeIntervalMinute * 2));\n" +
         "NumberNodes = NumberTasks == 0 ? 0 : (NumberTasks + 1) / NumberCPUPerNode;\n" +
@@ -37,16 +36,18 @@ public class Azure
     /// Create an return reference to pool.
     /// </summary>
     /// <param name="primaryAccessKey">An Azure primary access key</param>
+    /// <param name="poolName">The name of a pool, typical takes the form: PR_NUMBER-COMMIT_SHA e.g. 11569-11a24b </param>
     /// <param name="nodeNumber">The number of nodes to allocate in the pool. If not provided, it will be calculated based on the number of tasks and CPUs per node.</param>
     /// <param name="isAutoscaling">Should the pool be autoscaled?</param>
     /// <param name="vmsize">The name of a Azure VM e.g. Standard_D4d_v5. More information can be found here: https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/overview?tabs=breakdownseries%2Cgeneralsizelist%2Ccomputesizelist%2Cmemorysizelist%2Cstoragesizelist%2Cgpusizelist%2Cfpgasizelist%2Chpcsizelist </param>
-    public static void CreatePool(string primaryAccessKey, string nodeNumber = "60", bool isAutoscaling = true, string vmsize = "Standard_D4d_v5")
+    public static void CreatePool(string primaryAccessKey, string poolName, string nodeNumber = "60", bool isAutoscaling = true, string vmsize = "Standard_D4d_v5")
     {
         try
         {
+
             BatchSharedKeyCredentials batchCredentials = new(AZURE_ACCOUNT_URL, AZURE_ACCOUNT_NAME, primaryAccessKey);
             using BatchClient batchClient = BatchClient.Open(batchCredentials);
-            CloudPool pool = batchClient.PoolOperations.ListPools().FirstOrDefault(p => p.Id == AZURE_APSIM_DEFAULT_POOL_ID);
+            CloudPool pool = batchClient.PoolOperations.ListPools().FirstOrDefault(p => p.Id == poolName);
             if (pool == null)
             {
                 var imageReference = new ImageReference(
@@ -60,7 +61,7 @@ public class Azure
                     nodeAgentSkuId: "batch.node.ubuntu 24.04");
 
                 pool = batchClient.PoolOperations.CreatePool(
-                    poolId: AZURE_APSIM_DEFAULT_POOL_ID,
+                    poolId: poolName,
                     virtualMachineSize: vmsize,
                     virtualMachineConfiguration: vmConfiguration);
                 pool.TaskSlotsPerNode = 2;
@@ -77,13 +78,13 @@ public class Azure
                 else
                 {
                     pool.Commit();
-                    batchClient.PoolOperations.EnableAutoScale(AZURE_APSIM_DEFAULT_POOL_ID, autoScaleScript, TimeSpan.FromMinutes(5));
+                    batchClient.PoolOperations.EnableAutoScale(poolName, autoScaleScript, TimeSpan.FromMinutes(5));
                 }
             }
         }
         catch (Exception ex)
         {
-            throw new Exception($"Error creating pool {AZURE_APSIM_DEFAULT_POOL_ID}: {ex}");
+            throw new Exception($"Error creating pool {poolName}: {ex}");
         }
     }
 
@@ -92,10 +93,12 @@ public class Azure
     /// </summary>
     /// <param name="primaryAccessKey">An Azure primary access key</param>
     /// <param name="paths">A list of the paths to include in the job</param>
-    /// <param name="envString">A single string with all env values</param>
+    /// <param name="envVars">A dictionary representation of the environment variables.</param>
     /// <param name="uniqueJobName">A unique job name</param>
-    /// <param name="keyOne">A key one value from an Azure batch account</param>
-    public static void CreateJobs(string primaryAccessKey, string[] paths, string envString, string uniqueJobName, string key)
+    /// <param name="key">A key one or key two value from an Azure batch account</param>
+    /// <param name="prNumber">The pull request number for this acceptance test run.</param>
+    /// <param name="poolName">The Azure batch pool name</param>
+    public static void CreateJobs(string primaryAccessKey, string[] paths, Dictionary<string,string> envVars, string uniqueJobName, string key, string prNumber, string poolName)
     {
         List<CloudTask> cloudTasks = [];
         string scriptName = "workflow.sh";
@@ -106,10 +109,10 @@ public class Azure
         BatchSharedKeyCredentials batchCredentials = new(AZURE_ACCOUNT_URL, AZURE_ACCOUNT_NAME, primaryAccessKey);
 
         using BatchClient batchClient = BatchClient.Open(batchCredentials);
-        CloudPool pool = batchClient.PoolOperations.ListPools().FirstOrDefault(p => p.Id == AZURE_APSIM_DEFAULT_POOL_ID);
+        CloudPool pool = batchClient.PoolOperations.ListPools().FirstOrDefault(p => p.Id == poolName);
         // check if we have a pool already created. 
         if (pool == null)
-            throw new ArgumentException($"A pool with the ID {AZURE_APSIM_DEFAULT_POOL_ID} could not be found");
+            throw new ArgumentException($"A pool with the ID {poolName} could not be found");
 
         // Copy files to Azure storage so the tasks can access them.
         string keyOne = key;
@@ -117,20 +120,19 @@ public class Azure
             $"DefaultEndpointsProtocol=https;AccountName={AZURE_STORAGE_ACCOUNT_NAME};AccountKey={keyOne};EndpointSuffix=core.windows.net";
 
         // TODO: this should just send the workflow.sh file up rather than all the apsim validation files.
-        string assemblyDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)
-            ?? throw new InvalidOperationException("Could not determine the workflow assembly directory.");
+        string assemblyDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        if (string.IsNullOrEmpty(assemblyDirectory))
+            throw new InvalidOperationException("Could not determine the workflow assembly directory.");
         string scriptPath = Path.Combine(assemblyDirectory, scriptName);
         if (!File.Exists(scriptPath))
             throw new FileNotFoundException("The workflow.sh script file could not be found and as such was not uploaded to the storage container.");
         CopyFilesToAzure(scriptPath, storageConnectionString, storageName);
 
-        // Create a dictionary from the env file string
-        Dictionary<string, string> envDict = [];
-        foreach(string line in envString.Split("\n"))
-        {
-            string[] values = line.Split('=');
-            envDict.Add(values[0], values[1]);
-        }
+        //TODO: replace this with a real value.
+        envVars.Add("PR_NUMBER", prNumber);
+        envVars.Add("OUTPUT_FILES", "stdout.txt");
+        envVars.Add("AZURE_STORAGE_CONTAINER", storageName);
+        envVars.Add("AZURE_STORAGE_CONNECTION_STRING", storageConnectionString);
 
         // Create a cloud task for each aspimx file path.
         int pathIndex = 0;
@@ -142,7 +144,9 @@ public class Azure
             {
                 UserIdentity = new UserIdentity("admin"),
                 ResourceFiles = resourceFiles,
-                EnvironmentSettings = envDict.Select(e => new EnvironmentSetting(e.Key, e.Value)).ToList(),
+                EnvironmentSettings = envVars.Select(e => new EnvironmentSetting(e.Key, e.Value))
+                    .Append(new EnvironmentSetting("Path", apsimFilePath[1..])) // Path has to be added here so it's unique for each task.
+                    .ToList(),
                 ExitConditions = new ExitConditions
                 {
                     Default = new ExitOptions
@@ -161,8 +165,8 @@ public class Azure
             {
                 // Create an Azure job.
                 azureJob = batchClient.JobOperations.CreateJob();
-                azureJob.Id = storageName;
-                azureJob.PoolInformation = new PoolInformation { PoolId = AZURE_APSIM_DEFAULT_POOL_ID };
+                azureJob.Id = uniqueJobName;
+                azureJob.PoolInformation = new PoolInformation { PoolId = poolName };
                 azureJob.OnAllTasksComplete = OnAllTasksComplete.TerminateJob;
                 azureJob.UsesTaskDependencies = true;
                 azureJob.JobPreparationTask = new JobPreparationTask("bash workflow.sh initialise")
