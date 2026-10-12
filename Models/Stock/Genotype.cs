@@ -236,6 +236,35 @@ namespace Models.GrazPlan
         public double[] IntakeLactC { get; set; } = new double[4];
 
         /// <summary>Graze C c-r-</summary>
+        /// <summary>
+        /// Grazing parameters controlling forage and supplement quality, pasture intake, and grazing time.
+        /// <list type="table">
+        ///   <listheader>
+        ///     <term>Index</term>
+        ///     <description>Parameter</description>
+        ///   </listheader>
+        ///   <item><term>0</term><description>Unused.</description></item>
+        ///   <item><term>1</term><description>Reference digestibility for relative forage quality.</description></item>
+        ///   <item><term>2</term><description>Scales the pasture intake increase associated with legume proportion.</description></item>
+        ///   <item><term>3</term><description>Controls the digestibility penalty and pasture-to-supplement intake transition.</description></item>
+        ///   <item><term>4</term><description>Scales the pasture intake-rate response to feed availability.</description></item>
+        ///   <item><term>5</term><description>Scales the additional grazing-time response when scaled feed availability is low.</description></item>
+        ///   <item><term>6</term><description>Sets how quickly the index-5 grazing-time response changes with scaled feed availability.</description></item>
+        ///   <item><term>7</term><description>Relative-size threshold used to adjust pasture relative fill.</description></item>
+        ///   <item><term>8</term><description>Time scale, in days, for the lactation-related supplement effect.</description></item>
+        ///   <item><term>9</term><description>Lower threshold for the supplement protein effect.</description></item>
+        ///   <item><term>10</term><description>Upper threshold at which the supplement protein effect reaches its maximum.</description></item>
+        ///   <item><term>11</term><description>Supplement energy-intake cap for non-lactating animals.</description></item>
+        ///   <item><term>12</term><description>Weights the pasture-height ratio in the height factor.</description></item>
+        ///   <item><term>13</term><description>Adjusts relative fill according to the fraction of total feed in a particular class.</description></item>
+        ///   <item><term>14</term><description>Maximum supplement relative quality.</description></item>
+        ///   <item><term>15</term><description>Scales the maximum lactation-related reduction to supplement relative quality.</description></item>
+        ///   <item><term>16</term><description>Scales the protein-related reduction to supplement relative quality.</description></item>
+        ///   <item><term>17-19</term><description>Unused.</description></item>
+        ///   <item><term>20</term><description>Supplement energy-intake cap for lactating animals; defaults to 11.5 when zero.</description></item>
+        /// </list>
+        /// </summary>
+        /// <remarks>Note: this array index table was AI generated and is only indicative.</remarks>
         [Description("Graze C c-r-")]
         public double[] GrazeC { get; set; } = new double[21];
 
