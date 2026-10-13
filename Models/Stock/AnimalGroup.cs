@@ -4408,12 +4408,12 @@ namespace Models.GrazPlan
         /// </summary>
         /// <param name="theAnimals">The animal group</param>
         /// <param name="timeStepLength"></param>
-        /// <param name="suppDWPerHead"></param>
-        /// <param name="supp"></param>
-        /// <param name="suppRQ"></param>
-        /// <param name="eatenFirst"></param>
-        /// <param name="suppRI"></param>
-        /// <param name="fracUnsat"></param>
+        /// <param name="suppDWPerHead">Supplement Dry Weight Per Head</param>
+        /// <param name="supp">The supplement object</param>
+        /// <param name="suppRQ">The supplements relative quality</param>
+        /// <param name="eatenFirst">Is it eaten first?</param>
+        /// <param name="suppRI">The relative intake of the supplment</param>
+        /// <param name="fracUnsat">The remaining </param>
         private void EatSupplement(AnimalGroup theAnimals,
                                     double timeStepLength,
                                     double suppDWPerHead,
