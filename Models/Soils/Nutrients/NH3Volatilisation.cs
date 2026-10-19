@@ -1,6 +1,5 @@
 using APSIM.Numerics;
 using APSIM.Shared.Utilities;
-using Models.Climate;
 using Models.Core;
 using Models.Interfaces;
 using System;
@@ -25,6 +24,9 @@ namespace Models.Soils.Nutrients
         private readonly IWeather weather = null;
 
         [Link]
+        private readonly Zone zone = null;
+
+        [Link]
         private readonly ISummary summary = null;
 
         [Link]
@@ -33,7 +35,7 @@ namespace Models.Soils.Nutrients
         [Link]
         private readonly Irrigation irrigation = null;
 
-        [Link(ByName=true)]
+        [Link(ByName = true)]
         private readonly NFlow hydrolysis = null;
 
         [Link(ByName = true)]
@@ -55,6 +57,7 @@ namespace Models.Soils.Nutrients
         // Private fields
         ///////////////////////////////////////////////////////////////////////////
 
+        private List<ICanopy> canopies = new();        // Canopies in scope, used for aerodynamic conductance
         private double[] initialPH;                    // Initial soil pH
         private double[] cec;                          // Cation exchange capacity (cmol/kg)
         private readonly Dictionary<string, (double a, double b)> pK = new()
@@ -98,6 +101,11 @@ namespace Models.Soils.Nutrients
         [Separator("Gas exchange parameters")]
         [Description("Factor for soil/atmosphere gas exchange (AFPV*sec/m)")]
         public double k_AFPV { get; set; } = 75.0;
+
+        /// <summary>Height of the wind measurement above the canopy (m)</summary>
+        [Description("Height of wind measurement above the canopy (m):")]
+        [Units("m")]
+        public double ReferenceHeight { get; set; } = 2.0;
 
         /// <summary>The additional limits for volatilisation</summary>
         [Separator("Additional limits for volatilisation")]
@@ -179,6 +187,34 @@ namespace Models.Soils.Nutrients
         ///////////////////////////////////////////////////////////////////////////
 
         /// <summary>
+        /// Calculate the aerodynamic conductance using FAO approach
+        /// </summary>
+        private static double AerodynamicConductanceFAO(double windSpeed, double refHeight, double topHeight, double LAItot)
+        {
+            double vonKarman = 0.41;
+
+            // Calculate site properties
+            double d = 0.666 * topHeight;        // zero plane displacement height (m)
+            double Zh = topHeight + refHeight;   // height of humidity measurement (m) - assume reference above canopy
+            double Zm = topHeight + refHeight;   // height of wind measurement (m)
+            double Z0m = 0.123 * topHeight;      // roughness length governing transfer of momentum (m)
+            double Z0h = 0.1 * Z0m;              // roughness length governing transfer of heat and vapour (m)
+            // Calcuate conductance
+            double mterm = 0.0; // momentum term in Ga calculation
+            double hterm = 0.0; // heat term in Ga calculation
+            if ((Z0m != 0) && (Z0h != 0))
+            {
+                mterm = MathUtilities.Divide(vonKarman, Math.Log(MathUtilities.Divide(Zm - d, Z0m, 0.0)), 0.0);
+                hterm = MathUtilities.Divide(vonKarman, Math.Log(MathUtilities.Divide(Zh - d, Z0h, 0.0)), 0.0);
+            }
+            return Math.Max(0.001, windSpeed * mterm * hterm);
+        }
+
+        //////////////////////////////////////////////////////////////////////////
+        // Events
+        ////////////////////////////////////////////////////////////////////////// 
+
+        /// <summary>
         /// Called at the start of the simulation
         /// </summary>
         [EventSubscribe("StartOfSimulation")]
@@ -196,6 +232,8 @@ namespace Models.Soils.Nutrients
             pK_NHx = new double[physical.Thickness.Length];
             pG_NH3 = new double[physical.Thickness.Length];
 
+            canopies = zone.Canopies;
+
             initialPH = chemical.PH.Clone() as double[];
             pH = chemical.PH.Clone() as double[];
             EmissabilityNH3 = new double[physical.Thickness.Length];
@@ -208,7 +246,7 @@ namespace Models.Soils.Nutrients
                 if (midPoints[i] <= DepthEmissable1)
                     EmissabilityNH3[i] = 1.0;
                 else if (midPoints[i] <= DepthEmissable2)
-                    EmissabilityNH3[i] = 1.0 - (midPoints[i] - DepthEmissable1) /(DepthEmissable2 - DepthEmissable1);
+                    EmissabilityNH3[i] = 1.0 - (midPoints[i] - DepthEmissable1) / (DepthEmissable2 - DepthEmissable1);
                 else
                     EmissabilityNH3[i] = 0.0;
             }
@@ -336,9 +374,24 @@ namespace Models.Soils.Nutrients
                 // 10-Calc the amount of NH3 in gaseous form
                 NH3Gas[z] = NH3ppm[z] * NH3GtoNH3A;                   // ppm (ug/cm3_air in soil = mg/L)
 
-                // 11-Calc the amount of NH3 in gaseous form and the amount effectivelly lost by volatilization
-                if (weather.Wind < 0.001) summary.WriteMessage(this, "Note that windspeed is very low and this will affect the calculation of volatilisation. If wind is missing from your weather file then you will need to use a ClimateController", MessageType.Information);
-                PotGasExchangeNH = weather.Wind * k_AFPV;   // air filled pore volumes/day
+                // 11-Calc the amount of NH3 in gaseous form and the amount effectively lost by volatilization
+                if (weather.Wind < 0.001)
+                    summary.WriteMessage(this,
+                        "Note that windspeed is very low and this will affect the calculation of volatilisation. " +
+                        "If wind is missing from your weather file then you will need to use a ClimateController",
+                    MessageType.Information);
+
+                // Account for wind shear near the ground (and any canopy) using the aerodynamic conductance
+                double canopyHeight = 0;
+                double totalLAI = 0;
+                foreach (ICanopy canopy in canopies)
+                {
+                    canopyHeight = Math.Max(canopyHeight, canopy.Height / 1000.0);   // mm to m
+                    totalLAI += canopy.LAI;
+                }
+                double aerodynamicConductance = AerodynamicConductanceFAO(weather.Wind, ReferenceHeight, canopyHeight, totalLAI);
+
+                PotGasExchangeNH = aerodynamicConductance * k_AFPV;   // air filled pore volumes/day
                 AirFilledPoreVolume[z] = (physical.SAT[z] - waterBalance.SW[z]) * physical.Thickness[z];    // L_air/m2
 
                 GasExchangeNH[z] = PotGasExchangeNH * AirFilledPoreVolume[z];      // L_air/m2/day
@@ -351,7 +404,7 @@ namespace Models.Soils.Nutrients
                 }
                 else
                     EmissionNH3[z] = 0;
-                   // Limit volatilisation to a fraction of NH4 for each layer
+                // Limit volatilisation to a fraction of NH4 for each layer
 
                 EmissionNH3[z] = Math.Min(EmissionNH3[z], f_AV * nh4.kgha[z]);   // why is this a fraction of nh4 in ppm? It shouldn't be (wasn't in Classic). CHanged to kgha
 
