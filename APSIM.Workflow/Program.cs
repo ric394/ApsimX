@@ -72,6 +72,18 @@ public class Program
     {
         try
         {
+            if (!string.IsNullOrEmpty(options.GenerateAndSplit))
+            {
+                var splitPath = SplitJsonGenerator.Run(options.GenerateAndSplit, logger);
+                if (splitPath != null)
+                    FileSplitter.Run(options.GenerateAndSplit, splitPath, Path.GetDirectoryName(options.GenerateAndSplit) + "/", logger);
+                return;
+            }
+            if (!string.IsNullOrEmpty(options.GenerateSplit))
+            {
+                SplitJsonGenerator.Run(options.GenerateSplit, logger);
+                return;
+            }
             if (options.SplitFiles != null)
             {
                 FileSplitter.Run(options.DirectoryPath, options.SplitFiles, Path.GetDirectoryName(options.DirectoryPath) + "/", logger);

@@ -37,6 +37,14 @@ public class Options
     [Option('s', "splitfiles", Required = false, HelpText = "Apsimx file to split.")]
     public string SplitFiles { get; set; }
 
+    /// <summary>Apsimx file to generate a split.json file for.</summary>
+    [Option("generate-split", Required = false, HelpText = "Apsimx file to generate a split.json file for (one group per experiment).")]
+    public string GenerateSplit { get; set; } = "";
+
+    /// <summary>Apsimx file to generate a split.json file for and then split.</summary>
+    [Option("generate-and-split", Required = false, HelpText = "Apsimx file to generate a split.json file for (one group per experiment) and then split.")]
+    public string GenerateAndSplit { get; set; } = "";
+
     /// <summary>
     /// Gets or sets the path to the APSIMX file in a docker container.
     /// </summary>
