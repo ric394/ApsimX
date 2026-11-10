@@ -149,6 +149,9 @@ namespace Models.Soils
         private double TD_pevap;
         private double TD_drain;
         private double TD_subsurface_drain;
+        private double dailyBypassFlow;
+        private int bypassNode;
+        private bool hasSubsurfaceIrrigation;
         private double[] TD_soldrain;
         private double[] TD_slssof;
         private double[] TD_wflow;
@@ -347,6 +350,17 @@ namespace Models.Soils
         [Description("Maximum water increment (mm)")]
         [Units("mm")]
         public double MaxWaterIncrement { get; set; }
+
+        /// <summary>Fraction of rainfall and surface irrigation, after curve-number runoff, offered to bypass flow.</summary>
+        [Description("Fraction of incoming surface water offered to bypass flow")]
+        [Bounds(Lower = 0.0, Upper = 1.0)]
+        [Units("0-1")]
+        public double BypassFraction { get; set; }
+
+        /// <summary>Depth of the interior soil layer receiving bypass water (mm). The bottom layer is not supported.</summary>
+        [Description("Depth of bypass flow destination (mm)")]
+        [Units("mm")]
+        public double BypassDepth { get; set; }
 
         /// <summary>Space weighting factor.</summary>
         [Description("Space weighting factor")]
@@ -550,9 +564,14 @@ namespace Models.Soils
         [Units("0-1")]
         public double CoverSurfaceRunoff => _cover_surface_runoff;
 
-        /// <summary>Water infiltration (rainfall and irrigation) into the surface layer.</summary>
+        /// <summary>Water infiltration (rainfall and irrigation) into the surface layer, excluding bypass flow.</summary>
         [Units("mm")]
         public double Infiltration => TD_wflow[0];
+
+        /// <summary>Water entering an interior soil layer via bypass flow today, excluding matrix infiltration.</summary>
+        [JsonIgnore]
+        [Units("mm")]
+        public double BypassFlow => dailyBypassFlow;
 
         /// <summary>Actual (realised) soil water evaporation</summary>
         [Units("mm")]
@@ -1045,6 +1064,7 @@ namespace Models.Soils
                 }
 
                 SubSurfaceInFlow = new double[n + 1];
+                hasSubsurfaceIrrigation = false;
             }
         }
 
@@ -1071,6 +1091,11 @@ namespace Models.Soils
                 // flag this event in output file
                 summary.WriteMessage(this, "APSwim adding irrigation to log", MessageType.Diagnostic);
             }
+
+            if (BypassFraction > 0 && Irrigated.Depth > 0)
+                throw new ApsimXException(this, "Bypass flow does not support subsurface irrigation.");
+            if (Irrigated.Depth > 0)
+                hasSubsurfaceIrrigation = true;
 
             double amount = Irrigated.Amount;
             double duration = Irrigated.Duration;
@@ -1168,6 +1193,7 @@ namespace Models.Soils
             //       for limited gain in precision.  We may need to adress this later
             //       by enabling two small rainfall periods to be summed to create
             //       one timestep instead of two.
+            CheckInputs();
             ResetDailyTotals();
             GetOtherVariables();
             GetSoluteVariables();
@@ -1334,7 +1360,21 @@ namespace Models.Soils
 
         private void CheckInputs()
         {
-            // Does nothing
+            if (!double.IsFinite(BypassFraction) || BypassFraction < 0 || BypassFraction > 1)
+                throw new ApsimXException(this, "BypassFraction must be between 0 and 1.");
+            if (BypassFraction > 0)
+            {
+                if (!double.IsFinite(BypassDepth) || BypassDepth < physical.Thickness[0] ||
+                    BypassDepth >= MathUtilities.Sum(physical.Thickness))
+                    throw new ApsimXException(this, "BypassDepth must be below the first layer and within the soil profile.");
+                bypassNode = FindSwimLayer(BypassDepth);
+                if (bypassNode >= n)
+                    throw new ApsimXException(this, "BypassDepth must be in an interior layer, above the bottom layer.");
+                if (itbc == 1)
+                    throw new ApsimXException(this, "Bypass flow does not support a constant-potential surface boundary.");
+                if (hasSubsurfaceIrrigation)
+                    throw new ApsimXException(this, "Bypass flow does not support subsurface irrigation.");
+            }
         }
 
         private void ReportStatus()
@@ -2501,6 +2541,7 @@ namespace Models.Soils
             TD_pevap = 0.0;
             TD_drain = 0.0;
             TD_subsurface_drain = 0.0;
+            dailyBypassFlow = 0.0;
 
             for (int sol = 0; sol < num_solutes; sol++)
             {
@@ -2772,6 +2813,8 @@ namespace Models.Soils
                 double old_gsurf = gsurf;
                 double[] pold = new double[n + 1];
                 double[,] cslold = new double[num_solutes, n + 1];
+                double[] oldSurfaceSolute = (double[])slsur.Clone();
+                double[] oldSurfaceConcentration = (double[])cslsur.Clone();
                 hold = _h;
                 for (int i = 0; i <= n; i++)
                 {
@@ -2799,6 +2842,12 @@ namespace Models.Soils
 
                 dr = CRain(t) - CRain(t - _dt);
                 ron = dr / _dt; // it could just be rain_intensity
+                qbp = 0.0;
+                if (BypassFraction > 0)
+                {
+                    double availableSpace = Math.Max(0.0, physical.SAT[bypassNode] - thold[bypassNode]) * dx[bypassNode];
+                    qbp = Math.Min(Math.Max(0.0, ron) * BypassFraction, availableSpace / _dt);
+                }
 
                 //cnh
                 for (int i = 0; i < num_solutes; i++)
@@ -2833,6 +2882,8 @@ namespace Models.Soils
                     _wp = wpold;
                     _dt = 0.5 * _dt;
                     _h = hold;
+                    Array.Copy(oldSurfaceSolute, slsur, num_solutes);
+                    Array.Copy(oldSurfaceConcentration, cslsur, num_solutes);
                     for (int i = 0; i <= n; i++)
                     {
                         _p[i] = pold[i];
@@ -2861,6 +2912,7 @@ namespace Models.Soils
                     TD_rain += ron * _dt * 10.0;
                     TD_pevap += resp * _dt * 10.0;
                     TD_subsurface_drain += MathUtilities.Sum(qssof) * _dt * 10.0;
+                    dailyBypassFlow += qbp * _dt * 10.0;
                     for (int node = 0; node <= n + 1; node++)
                         TD_wflow[node] += q[node] * _dt * 10.0;
 
@@ -3052,7 +3104,7 @@ namespace Models.Soils
                 // nh         _wp = wpf(n, _dx, th)
                 _wp = Wpf();
 
-                double balerr = ron - roff - q[n + 1] - rex - res + rssf - (_h - hold + _wp - wpold) / _dt;
+                double balerr = ron - qbp - roff - q[n + 1] - rex - res + rssf - (_h - hold + _wp - wpold) / _dt;
                 double err = 0.0;
                 for (int i = i1; i <= i2; i++)
                 {
@@ -3121,6 +3173,8 @@ namespace Models.Soils
             //     solve for solute movement
             else
             {
+                if (qbp > 0 && q[0] + res < -Math.Min(ersoil, ernode))
+                    throw new ApsimXException(this, "Bypass flow cannot be combined with upward water flow at the soil surface.");
                 for (int solnum = 0; solnum < num_solutes; solnum++)
                 {
                     GetSol(solnum, ref a, ref b, ref c, ref d, ref rhs, ref dp, ref vbp, ref pondingData, ref fail);
@@ -3162,7 +3216,9 @@ namespace Models.Soils
             //    surface solute balance - assume evap. (g%res) comes from x0 store
             double rovr = roff + qbp;
             double rinf = q[0] + res;
-            if (rinf > Math.Min(ersoil, ernode))
+            if (qbp > 0)
+                rinf = Math.Max(0.0, rinf);
+            if (rinf > Math.Min(ersoil, ernode) || qbp > 0)
             {
                 cslsur[solnum] = (rslon[solnum] + hold * cslsur[solnum] / _dt) / (rovr + rinf + _h / _dt);
                 qsl[solnum][0] = rinf * cslsur[solnum];
@@ -3317,8 +3373,14 @@ namespace Models.Soils
                 }
             }
 
-            //     allow for bypass flow
-            qslbp[solnum] = 0.0;
+            // Partition surface solute between runoff and bypass in proportion to their water flows.
+            if (qbp > 0)
+            {
+                qslbp[solnum] = rslovr * qbp / rovr;
+                rhs[bypassNode] -= qslbp[solnum];
+            }
+            else
+                qslbp[solnum] = 0.0;
 
             //     impose boundary conditions
             int k;
@@ -4442,6 +4504,8 @@ namespace Models.Soils
             for (int i = 0; i <= n; i++)
             {
                 qssif[i] = SubSurfaceInFlow[i] / 10.0 / 24.0; // assumes mm and daily timestep - need something better !!!!
+                if (i == bypassNode)
+                    qssif[i] += qbp;
                 qssof[i] = qdrain[i]; // Add outflow calc here later
                 qssofp[i] = qdrainpsi[i] * psip[i];
                 rssf += qssif[i] - qssof[i];
@@ -4471,7 +4535,7 @@ namespace Models.Soils
                 {
                     //           no ponding allowed
                     _h = 0.0;
-                    double q0 = ron - res + hold / _dt;
+                    double q0 = ron - qbp - res + hold / _dt;
 
                     if (_psi[0] < 0.0 || q0 < qs[0] + qex[0] + q[1] - qssif[0] + qssof[0])
                     {
@@ -4496,7 +4560,7 @@ namespace Models.Soils
                     {
                         _h = 0.0;
                         roff = 0.0;
-                        q[0] = ron - res + hold / _dt;
+                        q[0] = ron - qbp - res + hold / _dt;
                         qp2[0] = -respsi * psip[0];
                     }
                     else
@@ -4506,7 +4570,7 @@ namespace Models.Soils
                         roffd = 0.0;
                         if (isbc == 2)
                             CalculateRunoff(t, _h, out roff, out roffd);
-                        q[0] = ron - roff - res - (_h - hold) / _dt;
+                        q[0] = ron - qbp - roff - res - (_h - hold) / _dt;
                         qp2[0] = (-roffd - respsi - 1.0 / _dt) * psip[0];
                     }
                 }
@@ -4528,13 +4592,13 @@ namespace Models.Soils
                 _h = Math.Max(_psi[0], 0.0);
                 q[0] = qs[0] + qex[0] + q[1] - qssif[0] + qssof[0];
                 //        flow to source of potl treated as "runoff" (but no bypass flow)
-                roff = ron - res - (_h - hold) / _dt - q[0];
+                roff = ron - qbp - res - (_h - hold) / _dt - q[0];
             }
             else if (itbc == 2)
             {
                 //       conductance given by a function
                 double g_, gh;
-                double q0 = ron - resp + hold / _dt;
+                double q0 = ron - qbp - resp + hold / _dt;
                 if (isbc == 0)
                 {
                     //           no ponding allowed
@@ -4556,7 +4620,7 @@ namespace Models.Soils
                         hsoil = Math.Exp(hcon * _psi[0]);
                         res = resp * (hsoil - hair) / (1.0 - hair);
                         respsi = resp * hcon * hsoil / (1.0 - hair);
-                        q0 = ron - res + hold / _dt;
+                        q0 = ron - qbp - res + hold / _dt;
                         q[0] = q0;
                         qp2[0] = -respsi * psip[0];
                         roff = 0.0;
@@ -4581,7 +4645,7 @@ namespace Models.Soils
                         qp1[0] = g_ + gh * (_h - _psi[0]);
                         qp2[0] = -g_ * psip[0];
                         // WE MAY NEED TO HANDLE THE -1 INDICES SOMEHOW (though I'm not sure they are ever used)
-                        pondingData.rhs = -(ron - roff - res - q[0] - (_h - hold) / _dt);
+                        pondingData.rhs = -(ron - qbp - roff - res - q[0] - (_h - hold) / _dt);
                         pondingData.b = -roffd - qp1[0] - 1.0 / _dt;
                         pondingData.c = -qp2[0];
                         //rhs[-1] = -(ron - roff - res - q[0] - (_h - hold) / _dt);
@@ -4596,18 +4660,11 @@ namespace Models.Soils
                         hsoil = Math.Exp(hcon * _psi[0]);
                         res = resp * (hsoil - hair) / (1.0 - hair);
                         respsi = resp * hcon * hsoil / (1.0 - hair);
-                        q[0] = ron - res + hold / _dt;
+                        q[0] = ron - qbp - res + hold / _dt;
                         qp2[0] = -respsi * psip[0];
                     }
                 }
             }
-            //     bypass flow?
-            qbp = 0.0;
-            //qbpd = 0.0;
-            //double qbpp = 0.0;
-            //double qbps = 0.0;
-            //double qbpsp = 0.0;
-
             //   bottom boundary condition
             if (ibbc == 0)
             {
