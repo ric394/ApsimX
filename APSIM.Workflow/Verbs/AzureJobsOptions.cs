@@ -25,4 +25,8 @@ public class AzureJobsOptions
     /// <summary>Gets or sets the pull request author's GitHub username.</summary>
     [Option('g', "githubauthorid", Required = false, HelpText = "The pull requests author GitHub username")]
     public string GitHubAuthorID { get; set; } = "";
+
+    /// <summary>Gets or sets the Azure storage container for this validation run.</summary>
+    [Option("container-name", Required = true, HelpText = "The Azure storage container for this validation run.")]
+    public string ContainerName { get; set; } = "";
 }

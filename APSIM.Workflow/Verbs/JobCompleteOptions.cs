@@ -28,4 +28,8 @@ public class JobCompleteOptions
     /// <summary>Log file whose lines are sent as the job data.</summary>
     [Option("log-file", Required = true, HelpText = "Log file whose lines are sent to the A.V.A server.")]
     public string LogFile { get; set; } = "";
+
+    /// <summary>The Azure storage container for this validation run.</summary>
+    [Option("container-name", Required = true, HelpText = "The Azure storage container for this validation run.")]
+    public string ContainerName { get; set; } = "";
 }

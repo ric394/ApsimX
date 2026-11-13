@@ -5,6 +5,11 @@ set -euo pipefail
 # Require the pull request number and commit SHA used to open the validation record.
 test -z "${PULL_REQUEST:-}" && echo "PULL_REQUEST is empty" && exit 1
 test -z "${COMMIT:-}" && echo "COMMIT is empty" && exit 1
+test -z "${GITHUB_ENV:-}" && echo "GITHUB_ENV is empty" && exit 1
+
+# Use one container name for the validation run and make it available to later steps.
+container_name="$(date -u +'%Y-%m-%d-%H-%M-%S')-acceptance-tests-pr-${PULL_REQUEST}-storage"
+echo "AZURE_STORAGE_CONTAINER=${container_name}" >> "$GITHUB_ENV"
 
 # Use APSIM.Workflow to obtain the total simulation count and the list of validation
 # paths. The count verifies the workflow is able to discover validation jobs.
@@ -29,8 +34,9 @@ fi
 payload=$(jq -n \
   --arg pullRequest "$PULL_REQUEST" \
   --arg commit "$COMMIT" \
+  --arg containerName "$container_name" \
   --argjson paths "$paths" \
-  '{pullRequest: $pullRequest, commit: $commit, paths: $paths}')
+  '{pullRequest: $pullRequest, commit: $commit, paths: $paths, containerName: $containerName}')
 
 # Tell A.V.A to start tracking validation for the registered commit. Fail the job
 # on HTTP errors or transport failures so a rejected start is visible in Actions.

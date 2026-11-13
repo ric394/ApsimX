@@ -30,7 +30,8 @@ public static class AvaUtilities
     /// <param name="path">Path of the APSIM file. Any docker mount prefix is removed.</param>
     /// <param name="time">Elapsed time of the job in seconds.</param>
     /// <param name="logLines">Log lines produced by the job.</param>
-    public static string BuildPayload(string pullRequest, string commit, string path, string time, IEnumerable<string> logLines)
+    /// <param name="containerName">Azure storage container for this validation run.</param>
+    public static string BuildPayload(string pullRequest, string commit, string path, string time, IEnumerable<string> logLines, string containerName)
     {
         string relativePath = "";
         if (path is not null)
@@ -44,7 +45,8 @@ public static class AvaUtilities
             ["commit"] = commit ?? "",
             ["path"] = relativePath,
             ["time"] = time ?? "",
-            ["data"] = logLines ?? []
+            ["data"] = logLines ?? [],
+            ["containerName"] = containerName ?? ""
         };
         return JsonSerializer.Serialize(payload);
     }

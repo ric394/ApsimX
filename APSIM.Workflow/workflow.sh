@@ -41,7 +41,8 @@ function notify_job_complete {
     --full-commit-hash "$FULL_COMMIT_HASH" \
     --job-path "$Path" \
     --job-time "$job_time" \
-    --log-file "$log_file" || true
+    --log-file "$log_file" \
+    --container-name "$AZURE_STORAGE_CONTAINER" || true
 }
 
 function run_00001_finally {

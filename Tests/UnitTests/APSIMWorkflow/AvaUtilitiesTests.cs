@@ -31,7 +31,7 @@ namespace UnitTests.APSIMWorkflow
         [Test]
         public void BuildPayload_ContainsExpectedFieldsAndStripsMountPrefix()
         {
-            string json = AvaUtilities.BuildPayload("11745", "e027fb7", "/wd/Validation/Wheat.apsimx", "151.0", new[] { "Example log" });
+            string json = AvaUtilities.BuildPayload("11745", "e027fb7", "/wd/Validation/Wheat.apsimx", "151.0", new[] { "Example log" }, "2026-11-12-acceptance-tests-pr-11745-storage");
 
             using JsonDocument doc = JsonDocument.Parse(json);
             JsonElement root = doc.RootElement;
@@ -40,6 +40,7 @@ namespace UnitTests.APSIMWorkflow
             Assert.That(root.GetProperty("path").GetString(), Is.EqualTo("Validation/Wheat.apsimx"));
             Assert.That(root.GetProperty("time").GetString(), Is.EqualTo("151.0"));
             Assert.That(root.GetProperty("data").EnumerateArray().Select(e => e.GetString()), Is.EqualTo(new[] { "Example log" }));
+            Assert.That(root.GetProperty("containerName").GetString(), Is.EqualTo("2026-11-12-acceptance-tests-pr-11745-storage"));
         }
 
         [Test]

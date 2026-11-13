@@ -62,7 +62,8 @@ public class Program
                 options.FullCommitHash,
                 options.JobPath,
                 options.JobTime,
-                AvaUtilities.ReadLogLines(options.LogFile));
+                AvaUtilities.ReadLogLines(options.LogFile),
+                options.ContainerName);
             using var client = new System.Net.Http.HttpClient();
             AvaUtilities.PostAsync(client, payload, AvaUtilities.JobCompleteRoute).GetAwaiter().GetResult();
             logger.LogInformation("A.V.A server notified that the job is complete.");
@@ -150,6 +151,7 @@ public class Program
             envDict.Add("AUTHOR", options.GitHubAuthorID);
             envDict.Add("COMMIT_SHA", shortCommitSha);
             envDict.Add("FULL_COMMIT_HASH", options.FullCommitHash);
+            envDict["AZURE_STORAGE_CONTAINER"] = options.ContainerName;
 
             Azure.CreatePool(envDict["AZURE_PRIMARY_ACCESS_KEY"], poolName, isAutoscaling: false);
             logger.LogInformation($"An Azure batch pool called {poolName} successfully created!");

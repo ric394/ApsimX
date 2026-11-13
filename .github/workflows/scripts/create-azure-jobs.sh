@@ -2,6 +2,7 @@
 # Check all the environment variables are set.
 test -z "$PAYLOAD_FOLDER_PATH" && echo "PAYLOAD_FOLDER_PATH is empty" && exit 1 
 test -z "$AZURE_ENV_CONTENTS" && echo "AZURE_ENV_CONTENTS is empty" && exit 1
+test -z "$AZURE_STORAGE_CONTAINER" && echo "AZURE_STORAGE_CONTAINER is empty" && exit 1
 test -z "$INCOMING_COMMIT_SHA" && echo "INCOMING_COMMIT_SHA is empty" && exit 1
 test -z "$PR_AUTHOR" && echo "PR_AUTHOR is empty" && exit 1
 test -z "$DOCKER_METADATA_OUTPUT_VERSION" && echo "DOCKER_METADATA_OUTPUT_VERSION is empty" && exit 1
@@ -46,4 +47,4 @@ response=$(curl -f "${url}" || exit 1)
 echo "POStats2 open response: ${response}"
 
 echo "Starting to sendjobs to Azure..."
-dotnet ./bin/Release/net10.0/APSIM.Workflow.dll azure-jobs --env-string "$AZURE_ENV_CONTENTS" --pr-number "$pr_number" --commit-sha "$commitsha" --full-commit-hash "$INCOMING_COMMIT_SHA" --githubauthorid "$author"
+dotnet ./bin/Release/net10.0/APSIM.Workflow.dll azure-jobs --env-string "$AZURE_ENV_CONTENTS" --pr-number "$pr_number" --commit-sha "$commitsha" --full-commit-hash "$INCOMING_COMMIT_SHA" --githubauthorid "$author" --container-name "$AZURE_STORAGE_CONTAINER"

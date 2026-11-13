@@ -35,7 +35,7 @@ sudo() {
 }
 bc() { echo 0; }
 export -f sudo bc
-export Path="/wd/Tests/A folder/Example.apsimx" PR_NUMBER=123 FULL_COMMIT_HASH=abc AUTHOR=test TIME=now COMMIT_SHA=abc
+export Path="/wd/Tests/A folder/Example.apsimx" PR_NUMBER=123 FULL_COMMIT_HASH=abc AUTHOR=test TIME=now COMMIT_SHA=abc AZURE_STORAGE_CONTAINER=2026-11-12-acceptance-tests-pr-123-storage
 
 run_workflow() {
   local result=0
@@ -47,6 +47,7 @@ run_workflow() {
   test -f collector-called
   rm -f -- collector-called
   grep -q -- "job-complete --pr-number 123 --full-commit-hash abc --job-path $Path --job-time" notify-called
+  grep -q -- "--container-name $AZURE_STORAGE_CONTAINER" notify-called
   rm -f -- notify-called
 }
 

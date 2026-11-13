@@ -119,7 +119,7 @@ public class Azure
         string commandLine = "bash workflow.sh run_00001";
         CloudJob azureJob = null;
         string isoDate = DateTime.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss", CultureInfo.InvariantCulture);
-        string storageName = $"{uniqueJobName}-storage".ToLowerInvariant(); // used for naming the blob storage container for this run.
+        string storageName = envVars["AZURE_STORAGE_CONTAINER"];
         BatchSharedKeyCredentials batchCredentials = new(AZURE_ACCOUNT_URL, AZURE_ACCOUNT_NAME, primaryAccessKey);
 
         using BatchClient batchClient = BatchClient.Open(batchCredentials);
@@ -149,7 +149,6 @@ public class Azure
         envVars.Add("TIME", now );
         envVars.Add("PR_NUMBER", prNumber);
         envVars.Add("OUTPUT_FILES", "local.stdout.txt");
-        envVars.Add("AZURE_STORAGE_CONTAINER", storageName);
         envVars.Add("AZURE_STORAGE_CONNECTION_STRING", storageConnectionString);
 
         // Create a cloud task for each aspimx file path.
